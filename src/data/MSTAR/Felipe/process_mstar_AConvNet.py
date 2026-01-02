@@ -477,10 +477,10 @@ def get_all_partitions(metadata, path_metadata, file_path):
         # Try each partition type
         partition_funcs = [
             get_partition_soc,
-            get_partition_eoc1,
-            get_partition_eoc2_cv,
-            get_partition_eoc2_vv,
-            get_partition_outlier
+            # get_partition_eoc1,
+            # get_partition_eoc2_cv,
+            # get_partition_eoc2_vv,
+            # get_partition_outlier
         ]
         
         for func in partition_funcs:

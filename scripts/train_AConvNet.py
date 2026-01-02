@@ -79,8 +79,8 @@ def validation(m, ds):
 def run(epochs, dataset, classes, channels, batch_size,
         lr, lr_step, lr_decay, weight_decay, dropout_rate,
         model_name, experiments_path=None):
-    train_set = load_dataset('./datasets/MSTAR/MSTAR_ACONVNET', True, dataset, batch_size)
-    valid_set = load_dataset('./datasets/MSTAR/MSTAR_ACONVNET', False, dataset, batch_size)
+    train_set = load_dataset('datasets/MSTAR/MSTAR_ACONVNET', True, dataset, batch_size)
+    valid_set = load_dataset('datasets/MSTAR/MSTAR_ACONVNET', False, dataset, batch_size)
 
     m = AConvNet.Model(
         classes=classes, dropout_rate=dropout_rate, channels=channels,
