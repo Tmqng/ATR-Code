@@ -11,10 +11,16 @@ import time
 # This version organizes data according to the structure expected by:
 # https://github.com/jangsoopark/AConvNet-pytorch
 
+current_path = os.path.abspath(__file__)
+
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(current_path)))))
+
+mstar_dataset_root = os.path.join(project_root, "datasets/MSTAR")
+
 # Input directory (raw CD structure)
-RAW_DATA_DIR = "mstar_raw_data"
+RAW_DATA_DIR = os.path.join(mstar_dataset_root, "mstar_raw_data")
 # Output directory (organized for training)
-OUTPUT_DIR = "MSTAR_ACONVNET"
+OUTPUT_DIR = os.path.join(mstar_dataset_root, "MSTAR_ACONVNET")
 
 # Fixed size for all output images (standard for MSTAR)
 IMG_SIZE = (128, 128)
