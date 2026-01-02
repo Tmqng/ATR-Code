@@ -23,13 +23,12 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.join(project_root, "src"))
 
 # modules in src
-from data.MSTAR import preprocess
-from data.MSTAR import loader
+from data.MSTAR.paper_AconvNet import preprocess
+from data.MSTAR.paper_AConvNet import loader
 from utils import common
 from models import AConvNet
 
 model_str = 'AConvNet'
-
 
 
 flags.DEFINE_string('experiments_path', os.path.join(common.project_root, 'experiments'), help='')
@@ -80,8 +79,8 @@ def validation(m, ds):
 def run(epochs, dataset, classes, channels, batch_size,
         lr, lr_step, lr_decay, weight_decay, dropout_rate,
         model_name, experiments_path=None):
-    train_set = load_dataset('../datasets/MSTAR', True, dataset, batch_size)
-    valid_set = load_dataset('../datasets/MSTAR', False, dataset, batch_size)
+    train_set = load_dataset('./datasets/MSTAR/MSTAR_ACONVNET', True, dataset, batch_size)
+    valid_set = load_dataset('./datasets/MSTAR/MSTAR_ACONVNET', False, dataset, batch_size)
 
     m = AConvNet.Model(
         classes=classes, dropout_rate=dropout_rate, channels=channels,
