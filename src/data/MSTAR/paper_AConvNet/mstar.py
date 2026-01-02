@@ -16,13 +16,13 @@ target_name_eoc_2_vv = ('BMP2-9566', 'BMP2-C21', 'T72-812', 'T72-A04', 'T72-A05'
 target_name_confuser_rejection = ('BMP2', 'BTR70', 'T72', '2S1', 'ZIL131')
 
 target_name = {
-    'soc': target_name_soc,
-    'eoc-1': target_name_eoc_1,
-    'eoc-1-t72-132': target_name_eoc_1,
-    'eoc-1-t72-a64': target_name_eoc_1,
-    'eoc-2-cv': target_name_eoc_2 + target_name_eoc_2_cv,
-    'eoc-2-vv': target_name_eoc_2 + target_name_eoc_2_vv,
-    'confuser-rejection': target_name_confuser_rejection
+    'SOC': target_name_soc,
+    'EOC-1': target_name_eoc_1,
+    'EOC-1-T72-132': target_name_eoc_1,
+    'EOC-1-T72-A64': target_name_eoc_1,
+    'EOC-2-CV': target_name_eoc_2 + target_name_eoc_2_cv,
+    'EOC-2-VV': target_name_eoc_2 + target_name_eoc_2_vv,
+    'OUTLIER': target_name_confuser_rejection
 }
 
 serial_number = {

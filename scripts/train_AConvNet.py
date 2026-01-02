@@ -28,6 +28,8 @@ from data.MSTAR.paper_AConvNet import loader
 from utils import common
 from models import AConvNet
 
+DATA_PATH = 'datasets/MSTAR/mstar_data_paper_AConvNet'
+
 model_str = 'AConvNet'
 
 
@@ -79,8 +81,8 @@ def validation(m, ds):
 def run(epochs, dataset, classes, channels, batch_size,
         lr, lr_step, lr_decay, weight_decay, dropout_rate,
         model_name, experiments_path=None):
-    train_set = load_dataset('datasets/MSTAR/MSTAR_ACONVNET', True, dataset, batch_size)
-    valid_set = load_dataset('datasets/MSTAR/MSTAR_ACONVNET', False, dataset, batch_size)
+    train_set = load_dataset(DATA_PATH, True, dataset, batch_size)
+    valid_set = load_dataset(DATA_PATH, False, dataset, batch_size)
 
     m = AConvNet.Model(
         classes=classes, dropout_rate=dropout_rate, channels=channels,

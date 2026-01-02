@@ -13,7 +13,7 @@ import os
 
 import mstar
 
-flags.DEFINE_string('image_root', default='datasets/MSTAR/mstar_raw_data_paper_AConvNet', help='')
+flags.DEFINE_string('image_root', default='datasets/MSTAR/mstar_data_paper_AConvNet', help='')
 flags.DEFINE_string('dataset', default='SOC', help='') # original paper 'soc'
 flags.DEFINE_boolean('is_train', default=False, help='')
 flags.DEFINE_integer('chip_size', default=100, help='')
@@ -22,8 +22,7 @@ flags.DEFINE_boolean('use_phase', default=True, help='')
 
 FLAGS = flags.FLAGS
 
-project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 
 def data_scaling(chip):
     r = chip.max() - chip.min()
@@ -45,7 +44,7 @@ def generate(src_path, dst_path, is_train, chip_size, patch_size, use_phase, dat
         name=dataset, is_train=is_train, chip_size=chip_size, patch_size=patch_size, use_phase=use_phase, stride=1
     )
 
-    image_list = glob.glob(os.path.join(src_path, '*'))[:10]
+    image_list = glob.glob(os.path.join(src_path, '*'))
     print(f"Found {len(image_list)} images in {src_path}")
 
     for idx_path, path in enumerate(image_list):
@@ -66,8 +65,6 @@ def generate(src_path, dst_path, is_train, chip_size, patch_size, use_phase, dat
 def main(_):
 
     dataset_root = os.path.join(project_root, FLAGS.image_root, FLAGS.dataset)
-
-    print(dataset_root)
 
     raw_root = os.path.join(dataset_root, 'raw')
 
