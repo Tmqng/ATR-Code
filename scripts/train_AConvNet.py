@@ -23,7 +23,7 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.join(project_root, "src"))
 
 # modules in src
-from data.MSTAR.paper_AconvNet import preprocess
+from data.MSTAR.paper_AConvNet import preprocess
 from data.MSTAR.paper_AConvNet import loader
 from utils import common
 from models import AConvNet
