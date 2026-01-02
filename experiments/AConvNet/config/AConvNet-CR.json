@@ -1,6 +1,6 @@
 {
   "model_name": "AConvNet-CR",
-  "dataset": "confuser-rejection",
+  "dataset": "OUTLIER",
   "num_classes": 3,
   "channels": 2,
   "batch_size": 100,

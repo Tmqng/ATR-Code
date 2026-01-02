@@ -1,6 +1,6 @@
 {
   "model_name": "AConvNet-EOC-2-VV",
-  "dataset": "eoc-2-vv",
+  "dataset": "EOC-2-VV",
   "num_classes": 4,
   "channels": 2,
   "batch_size": 100,
