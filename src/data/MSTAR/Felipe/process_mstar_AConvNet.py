@@ -2,6 +2,7 @@ import os
 import re
 import numpy as np
 import cv2
+import json
 import shutil
 import warnings
 from pathlib import Path
@@ -20,7 +21,7 @@ mstar_dataset_root = os.path.join(project_root, "datasets/MSTAR")
 # Input directory (raw CD structure)
 RAW_DATA_DIR = os.path.join(mstar_dataset_root, "mstar_raw_data")
 # Output directory (organized for training)
-OUTPUT_DIR = os.path.join(mstar_dataset_root, "MSTAR_ACONVNET")
+OUTPUT_DIR = os.path.join(mstar_dataset_root, "MSTAR_IMG_JSON")
 
 # Fixed size for all output images (standard for MSTAR)
 IMG_SIZE = (128, 128)
@@ -441,7 +442,7 @@ def get_all_partitions(metadata, path_metadata, file_path):
     Get all applicable partitions for a single image.
     An image can belong to multiple datasets (SOC, EOC-1, EOC-2, Outlier).
     
-    Returns: List of (partition_path, name_suffix) tuples
+    Returns: List of (partition_path, meta_data) tuples
     """
     partitions = []
     
@@ -471,22 +472,30 @@ def get_all_partitions(metadata, path_metadata, file_path):
         depression_str = metadata.get('DesiredDepression') or metadata.get('MeasuredDepression') or str(path_metadata.get('depression_angle', 0))
         depression = int(float(depression_str) + 0.5)
         
-        # Create name suffix
-        name_suffix = f"{normalize_serial(serial_num)}_{depression}deg"
+        # # Create name suffix
+        # name_suffix = f"{normalize_serial(serial_num)}_{depression}deg"
+
+        # Create metadata json
+        metadata_json = {
+            "class_name": class_name,
+            "serial_number": serial_num,
+            "depression_angle": depression
+        }
         
         # Try each partition type
         partition_funcs = [
             get_partition_soc,
-            # get_partition_eoc1,
-            # get_partition_eoc2_cv,
-            # get_partition_eoc2_vv,
-            # get_partition_outlier
+            get_partition_eoc1,
+            get_partition_eoc2_cv,
+            get_partition_eoc2_vv,
+            get_partition_outlier
         ]
         
         for func in partition_funcs:
             partition = func(class_name, serial_num, depression)
             if partition:
-                partitions.append((partition, name_suffix))
+                # partitions.append((partition, name_suffix)) if we want to store metadata in file name.
+                partitions.append((partition, metadata_json))
         
         return partitions
         
@@ -618,14 +627,23 @@ def process_all_files(max_files=None):
                     processed_img = process_image(mag_image, target_size=IMG_SIZE)
                     
                     # Save to all applicable partitions
-                    for partition_path, name_suffix in partitions:
-                        # Create unique filename
+                    for partition_path, metadata_json in partitions:
+                        # Create unique img filename
                         base_name = os.path.splitext(os.path.basename(file))[0]
-                        output_filename = f"{base_name}_{name_suffix}.png"
-                        output_filepath = os.path.join(OUTPUT_DIR, partition_path, output_filename)
+                        output_filename_png = f"{base_name}.png"
+                        output_filepath_png = os.path.join(OUTPUT_DIR, partition_path, output_filename_png)
                         
                         # Save image
-                        cv2.imwrite(output_filepath, processed_img)
+                        cv2.imwrite(output_filepath_png, processed_img)
+
+                        # Create unique json filename
+                        output_filename_json = f"{base_name}.json"
+                        output_filepath_json = os.path.join(OUTPUT_DIR, partition_path, output_filename_json)
+
+                        # Save JSON metadata
+                        with open(output_filepath_json, mode='w', encoding='utf-8') as f:
+                            json.dump(metadata_json, f, ensure_ascii=False, indent=2)
+
                         total_assignments += 1
                         
                         # Update statistics
