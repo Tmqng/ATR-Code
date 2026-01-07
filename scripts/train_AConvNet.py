@@ -28,7 +28,9 @@ from data.MSTAR.paper_AConvNet import loader
 from utils import common
 from models import AConvNet
 
-DATA_PATH = 'datasets/MSTAR/mstar_data_paper_AConvNet'
+DATA_PATH = 'datasets/MSTAR/MSTAR_IMG_JSON'
+
+# DATA_PATH = 'datasets/MSTAR/mstar_data_paper_AConvNet/'
 
 model_str = 'AConvNet'
 

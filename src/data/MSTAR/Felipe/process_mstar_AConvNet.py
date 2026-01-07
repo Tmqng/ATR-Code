@@ -143,6 +143,44 @@ OUTLIER_CONFUSER = {
     'ZIL131': ['e12'],
 }
 
+# Mapping class_name -> class_id
+target_name_soc = ('2S1', 'BMP2', 'BRDM2', 'BTR60', 'BTR70', 'D7', 'T62', 'T72', 'ZIL131', 'ZSU234')
+
+target_name_eoc_1 = ('2S1', 'BRDM2', 'T72', 'ZSU234')
+
+target_name_eoc_2 = ('BMP2', 'BRDM2', 'BTR70', 'T72')
+
+target_name_confuser_rejection = ('BMP2', 'BTR70', 'T72', '2S1', 'ZIL131')
+
+serial_number = {
+    'b01': 0,
+
+    '9563': 1,
+    '9566': 1,
+    'c21': 1,
+
+    'E-71': 2,
+    'k10yt7532': 3,
+    'c71': 4,
+    '92v13015': 5,
+    'A51': 6,
+
+    '132': 7,
+    '812': 7,
+    's7': 7,
+    'A04': 7,
+    'A05': 7,
+    'A07': 7,
+    'A10': 7,
+    'A32': 7,
+    'A62': 7,
+    'A63': 7,
+    'A64': 7,
+
+    'E12': 8,
+    'd08': 9
+}
+
 # --- PROCESSING FUNCTIONS ---
 
 def parse_mstar_file(file_path):
@@ -272,6 +310,10 @@ def normalize_serial(serial):
     """
     return serial.lower().strip().replace('-', '')
 
+
+class ErrorCounter:
+    count = 0
+
 def get_partition_soc(class_name, serial_num, depression):
     """
     Determine partition for SOC (Standard Operating Condition).
@@ -297,13 +339,15 @@ def get_partition_soc(class_name, serial_num, depression):
     if not is_nominal:
         return None
     
+    class_id = serial_number[serial_num]
+    
     # SOC Training: 17 degrees
     if depression == 17:
-        return f"SOC/train/{class_name}"
+        return f"SOC/train/{class_name}", class_id
     
     # SOC Test: 15 degrees
     elif depression == 15:
-        return f"SOC/test/{class_name}"
+        return f"SOC/test/{class_name}", class_id
     
     return None
 
@@ -326,13 +370,29 @@ def get_partition_eoc1(class_name, serial_num, depression):
     if not is_match:
         return None
     
+    class_id = serial_number[serial_num]
+
+    try:
+
+        class_id = target_name_eoc_1.index(target_name_soc[class_id])
+
+    except Exception as e:
+
+        ErrorCounter.count += 1
+
+        if target_name_soc[class_id] != class_name:
+            print(f"Error in get partition eoc 1 {e}")
+            print(f'{target_name_soc[class_id]}')
+            print(f'{class_name}')
+    
+    
     # EOC-1 Training: 17 degrees
     if depression == 17:
-        return f"EOC-1/train/{class_name}"
+        return f"EOC-1/train/{class_name}", class_id
     
     # EOC-1 Test: 30 degrees
     elif depression == 30:
-        return f"EOC-1/test/{class_name}"
+        return f"EOC-1/test/{class_name}", class_id
     
     return None
 
@@ -344,19 +404,30 @@ def get_partition_eoc2_cv(class_name, serial_num, depression):
     Test: 15 and 17 degrees (T72 variants: S7, A32, A62, A63, A64)
     """
     serial_norm = normalize_serial(serial_num)
+
+    class_id = serial_number[serial_num]
+
+    try:
+        class_id = target_name_eoc_2.index(target_name_soc[class_id])
+    except Exception as e:
+        ErrorCounter.count += 1
+        if target_name_soc[class_id] != class_name:
+            print(f"Error in get partition eoc 2 cv {e}")
+            print(f'{target_name_soc[class_id]}')
+            print(f'{class_name}')
     
     # Training uses SOC nominal serials at 17 degrees
     if depression == 17:
         if class_name in ['BMP2', 'BRDM2', 'BTR70', 'T72']:
             nominal_serials = [normalize_serial(s) for s in SOC_TRAIN_SERIALS[class_name]]
             if serial_norm in nominal_serials:
-                return f"EOC-2-CV/train/{class_name}"
+                return f"EOC-2-CV/train/{class_name}", class_id
     
     # Test uses T72 configuration variants at 15 and 17 degrees
     if class_name == 'T72' and depression in [15, 17]:
         cv_serials = [normalize_serial(s) for s in EOC2_CV_SERIALS['T72']]
         if serial_norm in cv_serials:
-            return f"EOC-2-CV/test/{class_name}"
+            return f"EOC-2-CV/test/{class_name}", class_id
     
     return None
 
@@ -368,20 +439,31 @@ def get_partition_eoc2_vv(class_name, serial_num, depression):
     Test: 15 and 17 degrees (BMP2 variants: 9566, C21; T72 variants: 812, A04, A05, A07, A10)
     """
     serial_norm = normalize_serial(serial_num)
-    
+
+    class_id = serial_number[serial_num]
+
+    try:
+        class_id = target_name_eoc_2.index(target_name_soc[class_id])
+    except Exception as e:
+        ErrorCounter.count += 1
+        if target_name_soc[class_id] != class_name:
+            print(f"Error in get partition eoc 2 vv {e}")
+            print(f'{target_name_soc[class_id]}')
+            print(f'{class_name}')
+        
     # Training uses SOC nominal serials at 17 degrees
     if depression == 17:
         if class_name in ['BMP2', 'BRDM2', 'BTR70', 'T72']:
             nominal_serials = [normalize_serial(s) for s in SOC_TRAIN_SERIALS[class_name]]
             if serial_norm in nominal_serials:
-                return f"EOC-2-VV/train/{class_name}"
+                return f"EOC-2-VV/train/{class_name}", class_id
     
     # Test uses version variants at 15 and 17 degrees
     if depression in [15, 17]:
         if class_name in EOC2_VV_SERIALS:
             vv_serials = [normalize_serial(s) for s in EOC2_VV_SERIALS[class_name]]
             if serial_norm in vv_serials:
-                return f"EOC-2-VV/test/{class_name}"
+                return f"EOC-2-VV/test/{class_name}", class_id
     
     return None
 
@@ -393,24 +475,35 @@ def get_partition_outlier(class_name, serial_num, depression):
     Test: 15 degrees (Known + Confuser)
     """
     serial_norm = normalize_serial(serial_num)
+
+    class_id = serial_number[serial_num]
+
+    try:
+        class_id = target_name_confuser_rejection.index(target_name_soc[class_id])
+    except Exception as e:
+        ErrorCounter.count += 1
+        if target_name_soc[class_id] != class_name:
+            print(f"Error in get partition outlier {e}")
+            print(f'{target_name_soc[class_id]}')
+            print(f'{class_name}')
     
     # Known targets
     if class_name in OUTLIER_KNOWN:
         known_serials = [normalize_serial(s) for s in OUTLIER_KNOWN[class_name]]
         if serial_norm in known_serials:
             if depression == 17:
-                return f"OUTLIER/train/known/{class_name}"
+                return f"OUTLIER/train/known/{class_name}", class_id
             elif depression == 15:
-                return f"OUTLIER/test/known/{class_name}"
+                return f"OUTLIER/test/known/{class_name}", class_id
     
     # Confuser targets
     if class_name in OUTLIER_CONFUSER:
         confuser_serials = [normalize_serial(s) for s in OUTLIER_CONFUSER[class_name]]
         if serial_norm in confuser_serials:
             if depression == 17:
-                return f"OUTLIER/train/confuser/{class_name}"
+                return f"OUTLIER/train/confuser/{class_name}", class_id
             elif depression == 15:
-                return f"OUTLIER/test/confuser/{class_name}"
+                return f"OUTLIER/test/confuser/{class_name}", class_id
     
     return None
 
@@ -492,10 +585,11 @@ def get_all_partitions(metadata, path_metadata, file_path):
         ]
         
         for func in partition_funcs:
-            partition = func(class_name, serial_num, depression)
+            partition = func(class_name, serial_num, depression) # path, class_id
             if partition:
                 # partitions.append((partition, name_suffix)) if we want to store metadata in file name.
-                partitions.append((partition, metadata_json))
+                metadata_json["class_id"] = partition[1]
+                partitions.append((partition[0], metadata_json))
         
         return partitions
         
@@ -687,7 +781,8 @@ def process_all_files(max_files=None):
     print(f"Files successfully processed: {processed_count}")
     print(f"Total assignments (images saved): {total_assignments}")
     print(f"Files skipped: {skipped_count}")
-    print(f"Errors: {error_count}")
+    # print(f"Errors: {error_count}")
+    print(f"Errors: {ErrorCounter.count}")
     
     # Detailed statistics per dataset
     print(f"\n=== SOC STATISTICS ===")

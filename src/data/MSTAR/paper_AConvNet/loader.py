@@ -1,6 +1,7 @@
 import numpy as np
 
 from skimage import io
+import cv2
 import torch
 import tqdm
 
@@ -49,7 +50,8 @@ class Dataset(torch.utils.data.Dataset):
         label_list = sorted(label_list, key=os.path.basename)
 
         for image_path, label_path in tqdm.tqdm(zip(image_list, label_list), desc=f'load {mode} data set', total=len(label_list)):
-            self.images.append(np.load(image_path))
+            self.images.append(cv2.imread(image_path, cv2.IMREAD_GRAYSCALE))
+            # self.images.append(np.load(image_path))
 
             with open(label_path, mode='r', encoding='utf-8') as f:
                 _label = json.load(f)
