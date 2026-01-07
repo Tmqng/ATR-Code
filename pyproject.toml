@@ -1,0 +1,14 @@
+[project]
+name = "atr-code"
+version = "0.1.0"
+description = "Repository containing code for an Automated Target Recognition (ATR) project for Dassault Aviation."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>=2.4.0",
+    "opencv-python>=4.11.0.86",
+    "pillow>=12.1.0",
+    "scikit-image>=0.26.0",
+    "torch>=2.9.1",
+    "torchvision>=0.24.1",
+]
