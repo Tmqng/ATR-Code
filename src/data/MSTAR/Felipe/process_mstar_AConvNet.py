@@ -152,34 +152,49 @@ target_name_eoc_2 = ('BMP2', 'BRDM2', 'BTR70', 'T72')
 
 target_name_confuser_rejection = ('BMP2', 'BTR70', 'T72', '2S1', 'ZIL131')
 
-serial_number = {
-    'b01': 0,
+# serial_number = {
+#     # 2S1
+#     'b01': 0, 
 
-    '9563': 1,
-    '9566': 1,
-    'c21': 1,
+#     # BMP2
+#     '9563': 1,
+#     '9566': 1,
+#     'c21': 1,
+    
+#     # BRDM2
+#     'E-71': 2,
 
-    'E-71': 2,
-    'k10yt7532': 3,
-    'c71': 4,
-    '92v13015': 5,
-    'A51': 6,
+#     # BTR60
+#     'k10yt7532': 3,
 
-    '132': 7,
-    '812': 7,
-    's7': 7,
-    'A04': 7,
-    'A05': 7,
-    'A07': 7,
-    'A10': 7,
-    'A32': 7,
-    'A62': 7,
-    'A63': 7,
-    'A64': 7,
+#     # BTR70
+#     'c71': 4,
 
-    'E12': 8,
-    'd08': 9
-}
+#     # D7
+#     '92v13015': 5,
+
+#     # T62
+#     'A51': 6,
+
+#     # T72    
+#     '132': 7,
+#     '812': 7,
+#     's7': 7,
+#     'A04': 7,
+#     'A05': 7,
+#     'A07': 7,
+#     'A10': 7,
+#     'A32': 7,
+#     'A62': 7,
+#     'A63': 7,
+#     'A64': 7,
+
+#     # ZIL131
+#     'E12': 8,
+
+#     # ZSU234
+#     'd08': 9
+# }
 
 # --- PROCESSING FUNCTIONS ---
 
@@ -339,15 +354,15 @@ def get_partition_soc(class_name, serial_num, depression):
     if not is_nominal:
         return None
     
-    class_id = serial_number[serial_num]
+    class_id = target_name_soc.index(class_name)
     
     # SOC Training: 17 degrees
     if depression == 17:
-        return f"SOC/train/{class_name}", class_id
+        return (f"SOC/train/{class_name}", class_id)
     
     # SOC Test: 15 degrees
     elif depression == 15:
-        return f"SOC/test/{class_name}", class_id
+        return (f"SOC/test/{class_name}", class_id)
     
     return None
 
@@ -355,7 +370,7 @@ def get_partition_eoc1(class_name, serial_num, depression):
     """
     Determine partition for EOC-1 (Large depression angle change).
     
-    Training: 17 degrees (2S1, BRDM2, T62-A64, ZSU234)
+    Training: 17 degrees (2S1, BRDM2, T72-A64, ZSU234)
     Test: 30 degrees (same 4 classes)
     """
     serial_norm = normalize_serial(serial_num)
@@ -370,29 +385,13 @@ def get_partition_eoc1(class_name, serial_num, depression):
     if not is_match:
         return None
     
-    class_id = serial_number[serial_num]
-
-    try:
-
-        class_id = target_name_eoc_1.index(target_name_soc[class_id])
-
-    except Exception as e:
-
-        ErrorCounter.count += 1
-
-        if target_name_soc[class_id] != class_name:
-            print(f"Error in get partition eoc 1 {e}")
-            print(f'{target_name_soc[class_id]}')
-            print(f'{class_name}')
-    
-    
     # EOC-1 Training: 17 degrees
     if depression == 17:
-        return f"EOC-1/train/{class_name}", class_id
+        return (f"EOC-1/train/{class_name}", target_name_eoc_1.index(class_name))
     
     # EOC-1 Test: 30 degrees
     elif depression == 30:
-        return f"EOC-1/test/{class_name}", class_id
+        return (f"EOC-1/test/{class_name}", target_name_eoc_1.index(class_name))
     
     return None
 
@@ -404,30 +403,19 @@ def get_partition_eoc2_cv(class_name, serial_num, depression):
     Test: 15 and 17 degrees (T72 variants: S7, A32, A62, A63, A64)
     """
     serial_norm = normalize_serial(serial_num)
-
-    class_id = serial_number[serial_num]
-
-    try:
-        class_id = target_name_eoc_2.index(target_name_soc[class_id])
-    except Exception as e:
-        ErrorCounter.count += 1
-        if target_name_soc[class_id] != class_name:
-            print(f"Error in get partition eoc 2 cv {e}")
-            print(f'{target_name_soc[class_id]}')
-            print(f'{class_name}')
     
     # Training uses SOC nominal serials at 17 degrees
     if depression == 17:
         if class_name in ['BMP2', 'BRDM2', 'BTR70', 'T72']:
             nominal_serials = [normalize_serial(s) for s in SOC_TRAIN_SERIALS[class_name]]
             if serial_norm in nominal_serials:
-                return f"EOC-2-CV/train/{class_name}", class_id
+                return (f"EOC-2-CV/train/{class_name}", target_name_eoc_2.index(class_name))
     
     # Test uses T72 configuration variants at 15 and 17 degrees
     if class_name == 'T72' and depression in [15, 17]:
         cv_serials = [normalize_serial(s) for s in EOC2_CV_SERIALS['T72']]
         if serial_norm in cv_serials:
-            return f"EOC-2-CV/test/{class_name}", class_id
+            return (f"EOC-2-CV/test/{class_name}", target_name_eoc_2.index(class_name))
     
     return None
 
@@ -439,31 +427,20 @@ def get_partition_eoc2_vv(class_name, serial_num, depression):
     Test: 15 and 17 degrees (BMP2 variants: 9566, C21; T72 variants: 812, A04, A05, A07, A10)
     """
     serial_norm = normalize_serial(serial_num)
-
-    class_id = serial_number[serial_num]
-
-    try:
-        class_id = target_name_eoc_2.index(target_name_soc[class_id])
-    except Exception as e:
-        ErrorCounter.count += 1
-        if target_name_soc[class_id] != class_name:
-            print(f"Error in get partition eoc 2 vv {e}")
-            print(f'{target_name_soc[class_id]}')
-            print(f'{class_name}')
-        
+    
     # Training uses SOC nominal serials at 17 degrees
     if depression == 17:
         if class_name in ['BMP2', 'BRDM2', 'BTR70', 'T72']:
             nominal_serials = [normalize_serial(s) for s in SOC_TRAIN_SERIALS[class_name]]
             if serial_norm in nominal_serials:
-                return f"EOC-2-VV/train/{class_name}", class_id
+                return (f"EOC-2-VV/train/{class_name}", target_name_eoc_2.index(class_name))
     
     # Test uses version variants at 15 and 17 degrees
     if depression in [15, 17]:
         if class_name in EOC2_VV_SERIALS:
             vv_serials = [normalize_serial(s) for s in EOC2_VV_SERIALS[class_name]]
             if serial_norm in vv_serials:
-                return f"EOC-2-VV/test/{class_name}", class_id
+                return (f"EOC-2-VV/test/{class_name}", target_name_eoc_2.index(class_name))
     
     return None
 
@@ -475,35 +452,24 @@ def get_partition_outlier(class_name, serial_num, depression):
     Test: 15 degrees (Known + Confuser)
     """
     serial_norm = normalize_serial(serial_num)
-
-    class_id = serial_number[serial_num]
-
-    try:
-        class_id = target_name_confuser_rejection.index(target_name_soc[class_id])
-    except Exception as e:
-        ErrorCounter.count += 1
-        if target_name_soc[class_id] != class_name:
-            print(f"Error in get partition outlier {e}")
-            print(f'{target_name_soc[class_id]}')
-            print(f'{class_name}')
     
     # Known targets
     if class_name in OUTLIER_KNOWN:
         known_serials = [normalize_serial(s) for s in OUTLIER_KNOWN[class_name]]
         if serial_norm in known_serials:
             if depression == 17:
-                return f"OUTLIER/train/known/{class_name}", class_id
+                return (f"OUTLIER/train/known/{class_name}", target_name_confuser_rejection.index(class_name))
             elif depression == 15:
-                return f"OUTLIER/test/known/{class_name}", class_id
+                return (f"OUTLIER/test/known/{class_name}", target_name_confuser_rejection.index(class_name))
     
     # Confuser targets
     if class_name in OUTLIER_CONFUSER:
         confuser_serials = [normalize_serial(s) for s in OUTLIER_CONFUSER[class_name]]
         if serial_norm in confuser_serials:
             if depression == 17:
-                return f"OUTLIER/train/confuser/{class_name}", class_id
+                return (f"OUTLIER/train/confuser/{class_name}", target_name_confuser_rejection.index(class_name))
             elif depression == 15:
-                return f"OUTLIER/test/confuser/{class_name}", class_id
+                return (f"OUTLIER/test/confuser/{class_name}", target_name_confuser_rejection.index(class_name))
     
     return None
 
@@ -565,8 +531,8 @@ def get_all_partitions(metadata, path_metadata, file_path):
         depression_str = metadata.get('DesiredDepression') or metadata.get('MeasuredDepression') or str(path_metadata.get('depression_angle', 0))
         depression = int(float(depression_str) + 0.5)
         
-        # # Create name suffix
-        # name_suffix = f"{normalize_serial(serial_num)}_{depression}deg"
+        # Create name suffix
+        name_suffix = f"{normalize_serial(serial_num)}_{depression}deg"
 
         # Create metadata json
         metadata_json = {
@@ -585,16 +551,16 @@ def get_all_partitions(metadata, path_metadata, file_path):
         ]
         
         for func in partition_funcs:
-            partition = func(class_name, serial_num, depression) # path, class_id
+            partition = func(class_name, serial_num, depression) # partition = (path, class_id)
             if partition:
-                # partitions.append((partition, name_suffix)) if we want to store metadata in file name.
                 metadata_json["class_id"] = partition[1]
-                partitions.append((partition[0], metadata_json))
+                partitions.append((partition[0], name_suffix, metadata_json))
         
         return partitions
         
     except Exception as e:
         print(f"Error in get_all_partitions: {e}")
+        print(file_path)
         return []
 
 def create_directory_structure():
@@ -721,17 +687,17 @@ def process_all_files(max_files=None):
                     processed_img = process_image(mag_image, target_size=IMG_SIZE)
                     
                     # Save to all applicable partitions
-                    for partition_path, metadata_json in partitions:
+                    for partition_path, name_suffix, metadata_json in partitions:
                         # Create unique img filename
                         base_name = os.path.splitext(os.path.basename(file))[0]
-                        output_filename_png = f"{base_name}.png"
+                        output_filename_png = f"{base_name}_{name_suffix}.png"
                         output_filepath_png = os.path.join(OUTPUT_DIR, partition_path, output_filename_png)
                         
                         # Save image
                         cv2.imwrite(output_filepath_png, processed_img)
 
                         # Create unique json filename
-                        output_filename_json = f"{base_name}.json"
+                        output_filename_json = f"{base_name}_{name_suffix}.json"
                         output_filepath_json = os.path.join(OUTPUT_DIR, partition_path, output_filename_json)
 
                         # Save JSON metadata
@@ -781,8 +747,7 @@ def process_all_files(max_files=None):
     print(f"Files successfully processed: {processed_count}")
     print(f"Total assignments (images saved): {total_assignments}")
     print(f"Files skipped: {skipped_count}")
-    # print(f"Errors: {error_count}")
-    print(f"Errors: {ErrorCounter.count}")
+    print(f"Errors: {error_count}")
     
     # Detailed statistics per dataset
     print(f"\n=== SOC STATISTICS ===")
@@ -908,8 +873,8 @@ def main():
     """
     Main script.
     """
-    print("=== MSTAR DATA PROCESSOR V2 - AConvNet Compatible ===")
-    print("\nThis version organizes data for the AConvNet-pytorch repository:")
+    print("=== MSTAR DATA PROCESSOR ===")
+    # print("\nThis version organizes data for the AConvNet-pytorch repository:")
     print("  - SOC: Standard Operating Condition (10 classes)")
     print("  - EOC-1: Extended Operating Condition (large depression angle change)")
     print("  - EOC-2-CV: Configuration Variants")
