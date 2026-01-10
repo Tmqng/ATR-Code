@@ -5,6 +5,7 @@ from absl import app
 from tqdm import tqdm
 
 from torch.utils import tensorboard
+from torch.utils.data import DataLoader, random_split
 
 import torchvision
 import torch
@@ -43,18 +44,45 @@ FLAGS = flags.FLAGS
 common.set_random_seed(12321)
 
 def load_dataset(path, is_train, name, batch_size):
-    transform = [preprocess.CenterCrop(88), torchvision.transforms.ToTensor()]
-    if is_train:
-        transform = [preprocess.RandomCrop(88), torchvision.transforms.ToTensor()]
+
+    val_transform = torchvision.transforms.Compose([preprocess.CenterCrop(88), torchvision.transforms.ToTensor()])
+
+    train_transform = torchvision.transforms.Compose([preprocess.RandomCrop(88), torchvision.transforms.ToTensor()])
 
     _dataset = loader.Dataset(
         path, name=name, is_train=is_train,
-        transform=torchvision.transforms.Compose(transform)
+        transform=None
     )
-    data_loader = torch.utils.data.DataLoader(
-        _dataset, batch_size=batch_size, shuffle=is_train, num_workers=1
-    )
-    return data_loader
+
+    if is_train:
+        # TODO add data_augmentation (in preprocess file)
+        # Split into train (80%) and validation (20%)
+        train_size = int(0.8 * len(_dataset))
+        val_size = len(_dataset) - train_size
+
+        train_dataset, val_dataset = random_split(_dataset, [train_size, val_size])
+
+        # CenterCrop for val and RandomCrop for train
+        train_dataset_transformed = preprocess.TransformWrapper(train_dataset, train_transform)
+        val_dataset_transformed = preprocess.TransformWrapper(val_dataset, val_transform)
+
+        train_data_loader = torch.utils.data.DataLoader(
+            train_dataset_transformed, batch_size=batch_size, shuffle=is_train, num_workers=1
+        )
+
+        val_data_loader = torch.utils.data.DataLoader(
+            val_dataset_transformed, batch_size=batch_size, shuffle=False, num_workers=1
+        )
+
+        return train_data_loader, val_data_loader
+
+
+    else:
+        test_dataset_transformed = preprocess.TransformWrapper(_dataset, val_transform)
+        data_loader = torch.utils.data.DataLoader(
+            test_dataset_transformed, batch_size=batch_size, shuffle=is_train, num_workers=1
+        )
+        return data_loader
 
 
 @torch.no_grad()
@@ -83,8 +111,8 @@ def validation(m, ds):
 def run(epochs, dataset, classes, channels, batch_size,
         lr, lr_step, lr_decay, weight_decay, dropout_rate,
         model_name, experiments_path=None):
-    train_set = load_dataset(DATA_PATH, True, dataset, batch_size)
-    valid_set = load_dataset(DATA_PATH, False, dataset, batch_size)
+    train_set, val_set = load_dataset(DATA_PATH, True, dataset, batch_size)
+    # test_set = load_dataset(DATA_PATH, False, dataset, batch_size)
 
     m = AConvNet.Model(
         classes=classes, dropout_rate=dropout_rate, channels=channels,
@@ -101,8 +129,10 @@ def run(epochs, dataset, classes, channels, batch_size,
         os.makedirs(history_path, exist_ok=True)
 
     history = {
-        'loss': [],
-        'accuracy': []
+        'train_loss': [],
+        'train_accuracy': [],
+        'val_loss': [],
+        'val_accuracy': []
     }
 
     for epoch in range(epochs):
@@ -117,14 +147,15 @@ def run(epochs, dataset, classes, channels, batch_size,
             lr = m.lr_scheduler.get_last_lr()[0]
             m.lr_scheduler.step()
 
-        accuracy = validation(m, valid_set)
+        train_accuracy = validation(m, train_set)
+        val_accuracy = validation(m, val_set)
 
         logging.info(
-            f'Epoch: {epoch + 1:03d}/{epochs:03d} | loss={np.mean(_loss):.4f} | lr={lr} | accuracy={accuracy:.2f}'
+            f'Epoch: {epoch + 1:03d}/{epochs:03d} | loss={np.mean(_loss):.4f} | lr={lr} | Validation accuracy={val_accuracy:.2f}'
         )
 
-        history['loss'].append(np.mean(_loss))
-        history['accuracy'].append(accuracy)
+        history['train_loss'].append(np.mean(_loss))
+        history['val_accuracy'].append(val_accuracy)
 
         if experiments_path:
             m.save(os.path.join(model_path, f'model-{epoch + 1:03d}.pth'))

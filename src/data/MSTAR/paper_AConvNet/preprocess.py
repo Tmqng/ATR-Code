@@ -67,3 +67,29 @@ class CenterCrop(object):
         x = (w - ow) // 2
 
         return _input[y: y + oh, x: x + ow, :]
+    
+
+class TransformWrapper(object):
+    """
+    Wrapper to apply transforms to dataset subsets after random_split.
+    
+    Since random_split doesn't know about transforms, we need to wrap
+    the subsets to apply transforms on-the-fly during data loading.
+    """
+    
+    def __init__(self, dataset_subset, transform):
+        self.dataset = dataset_subset
+        self.transform = transform
+    
+    def __len__(self):
+        return len(self.dataset)
+    
+    def __getitem__(self, idx):
+        # Get item from the dataset subset
+        image, label, serial_number = self.dataset[idx]
+        
+        # Apply transform
+        if self.transform:
+            image = self.transform(image)
+        
+        return image, label, serial_number
