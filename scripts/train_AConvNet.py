@@ -44,10 +44,20 @@ FLAGS = flags.FLAGS
 common.set_random_seed(12321)
 
 def load_dataset(path, is_train, name, batch_size):
+    """
+    Docstring for load_dataset
+    
+    :param path: Description
+    :param is_train: Description
+    :param name: Description
+    :param batch_size: Description
 
-    val_transform = torchvision.transforms.Compose([preprocess.CenterCrop(88), torchvision.transforms.ToTensor()])
+    Load train, val or test dataset and apply transformations.
+    """
 
-    train_transform = torchvision.transforms.Compose([preprocess.RandomCrop(88), torchvision.transforms.ToTensor()])
+    val_transform = torchvision.transforms.Compose([preprocess.CenterCrop(94), torchvision.transforms.ToTensor()])
+
+    train_transform = torchvision.transforms.Compose([preprocess.RandomCrop(94), torchvision.transforms.ToTensor()])
 
     _dataset = loader.Dataset(
         path, name=name, is_train=is_train,
@@ -55,7 +65,24 @@ def load_dataset(path, is_train, name, batch_size):
     )
 
     if is_train:
-        # TODO add data_augmentation (in preprocess file)
+
+        # TODO Data_augmentation (in preprocess file)
+        print(f"Augmenting training data with patches...")
+        # Extract patches from training data
+        augmented_samples = preprocess.augment_dataset_with_patches(
+            _dataset,
+            # patch_size=patch_size,
+            # stride=stride,
+            # chip_size=chip_size,
+            desc="Train augmentation"
+        )
+
+        print(f"\nRésultats augmentation :")
+        print(f"  Train : {len(_dataset)} images → {len(augmented_samples)} patches")
+        print(f"  Facteur : ~{len(augmented_samples) / len(_dataset):.0f}x (13x13 = 169 patches/image)")
+
+        _dataset = preprocess.AugmentedDataset(augmented_samples)
+
         # Split into train (80%) and validation (20%)
         train_size = int(0.8 * len(_dataset))
         val_size = len(_dataset) - train_size
@@ -160,8 +187,8 @@ def run(epochs, dataset, classes, channels, batch_size,
         if experiments_path:
             m.save(os.path.join(model_path, f'model-{epoch + 1:03d}.pth'))
 
-    with open(os.path.join(history_path, f'history-{model_name}.json'), mode='w', encoding='utf-8') as f:
-        json.dump(history, f, ensure_ascii=True, indent=2)
+        with open(os.path.join(history_path, f'history-{model_name}.json'), mode='w', encoding='utf-8') as f:
+            json.dump(history, f, ensure_ascii=True, indent=2)
 
 
 def main(_):

@@ -1,5 +1,12 @@
-from skimage import transform
 import numpy as np
+import tqdm
+
+import torch.nn.functional as F
+
+from skimage import transform
+from torch.utils.data import DataLoader
+
+from . import loader
 
 
 class ToTensor(object):
@@ -93,3 +100,69 @@ class TransformWrapper(object):
             image = self.transform(image)
         
         return image, label, serial_number
+    
+class AugmentedDataset(loader.Dataset):
+    """Dataset contenant les patches augmentés"""
+    def __init__(self, augmented_data):
+        self.data = augmented_data
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        return self.data[idx]
+
+def augment_dataset_with_patches(dataset, patch_size=94, stride=1, chip_size=100, desc="Extraction"):
+    """
+    Applique l'augmentation par patches sur un dataset.
+    Chaque image génère 169 patches (13x13).
+    """
+    augmented_samples = []
+
+    # DataLoader temporaire
+    temp_loader = DataLoader(dataset, batch_size=1, shuffle=False)
+
+    for images, labels, _ in tqdm.tqdm(temp_loader, desc=desc):
+        images_squeeze = images.squeeze(0)
+        patches = extract_patches_from_tensor(
+            images_squeeze,
+            patch_size=patch_size,
+            stride=stride,
+            chip_size=chip_size
+        )
+
+        label = labels.item()
+        for patch in patches:
+            augmented_samples.append((patch, label))
+
+    return augmented_samples
+
+def extract_patches_from_tensor(image_tensor, patch_size, stride, chip_size):
+    """
+    Extrait les patches 94x94 avec stride=1 après rognage à 100x100.
+    Fidèle au protocole MSTAR.
+    """
+
+    if image_tensor.dim() == 3:
+        image_tensor = image_tensor.unsqueeze(0)
+
+    image_tensor = image_tensor.float()
+
+    # Rogne au centre à 100x100 (chip_size)
+    if image_tensor.size(2) > chip_size:
+        start = (image_tensor.size(2) - chip_size) // 2
+        image_tensor = image_tensor[:, :, start:start + chip_size, start:start + chip_size]
+
+    # Extraction des patches avec F.unfold
+    patches_unfold = F.unfold(
+        image_tensor,
+        kernel_size=patch_size,
+        stride=stride
+    )
+
+    # Remise en forme (N_patches, C, H, W)
+    C = image_tensor.size(1)
+    patches = patches_unfold.transpose(1, 2)
+    patches = patches.reshape(-1, C, patch_size, patch_size)
+
+    return patches
