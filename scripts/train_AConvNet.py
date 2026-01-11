@@ -121,6 +121,13 @@ def validation(m, ds):
     m.net.eval()
     _softmax = torch.nn.Softmax(dim=1)
     for i, data in enumerate(tqdm(ds)):
+        if i == 0:
+            print(f"Data structure: {type(data)}")
+            print(f"Data length: {len(data)}")
+            images, labels, _ = data
+            print(f"Images shape: {images.shape}")
+            print(f"Labels shape: {labels.shape}")
+            print(f"Unique labels in batch: {torch.unique(labels)}")
         images, labels, _ = data
 
         images = images.to(m.device)
@@ -130,6 +137,13 @@ def validation(m, ds):
         predictions = _softmax(predictions)
 
         _, predictions = torch.max(predictions.data, 1)
+
+        # DEBUG: Check predictions
+        if i == 0:
+            print(f"Predicted classes: {predictions[:10]}")
+            print(f"True labels: {labels[:10]}")
+            print(f"Matches: {(predictions == labels)[:10]}")
+            
         labels = labels.type(torch.LongTensor)
         num_data += labels.size(0)
         corrects += (predictions == labels.to(m.device)).sum().item()
