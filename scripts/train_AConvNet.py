@@ -83,7 +83,7 @@ def load_dataset(path, is_train, name, batch_size):
 
         augmented_dataset = preprocess.AugmentedDataset(augmented_samples)
 
-        augmented_dataset = _dataset
+        # augmented_dataset = _dataset
 
         # Split into train (80%) and validation (20%)
         train_size = int(0.8 * len(augmented_dataset))
