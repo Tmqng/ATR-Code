@@ -133,7 +133,7 @@ def validation(m, ds):
         images, labels, _ = data
 
         images = images.to(m.device)
-        labels = labels.to(m.device).type(torch.LongTensor)
+        labels = labels.to(m.device)
 
         predictions = m.inference(images)
         predictions = predictions.to(m.device)
