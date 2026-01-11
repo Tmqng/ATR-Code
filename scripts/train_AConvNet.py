@@ -83,6 +83,8 @@ def load_dataset(path, is_train, name, batch_size):
 
         augmented_dataset = preprocess.AugmentedDataset(augmented_samples)
 
+        augmented_dataset = _dataset
+
         # Split into train (80%) and validation (20%)
         train_size = int(0.8 * len(augmented_dataset))
         val_size = len(augmented_dataset) - train_size
@@ -134,6 +136,7 @@ def validation(m, ds):
         labels = labels.to(m.device).type(torch.LongTensor)
 
         predictions = m.inference(images)
+        predictions = predictions.to(m.device)
         predictions = _softmax(predictions)
 
         _, predictions = torch.max(predictions.data, 1)
@@ -143,7 +146,7 @@ def validation(m, ds):
             print(f"Predicted classes: {predictions[:10]}")
             print(f"True labels: {labels[:10]}")
             print(f"Matches: {(predictions == labels)[:10]}")
-            
+
         labels = labels.type(torch.LongTensor)
         num_data += labels.size(0)
         corrects += (predictions == labels.to(m.device)).sum().item()
