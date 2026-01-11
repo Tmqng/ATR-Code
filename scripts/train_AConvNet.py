@@ -55,9 +55,9 @@ def load_dataset(path, is_train, name, batch_size):
     Load train, val or test dataset and apply transformations.
     """
 
-    val_transform = torchvision.transforms.Compose([preprocess.CenterCrop(94), torchvision.transforms.ToTensor()])
+    val_transform = torchvision.transforms.Compose([preprocess.CenterCrop(94)])
 
-    train_transform = torchvision.transforms.Compose([preprocess.RandomCrop(94), torchvision.transforms.ToTensor()])
+    train_transform = torchvision.transforms.Compose([preprocess.RandomCrop(94)])
 
     _dataset = loader.Dataset(
         path, name=name, is_train=is_train,
@@ -81,13 +81,13 @@ def load_dataset(path, is_train, name, batch_size):
         print(f"  Train : {len(_dataset)} images → {len(augmented_samples)} patches")
         print(f"  Facteur : ~{len(augmented_samples) / len(_dataset):.0f}x (13x13 = 169 patches/image)")
 
-        _dataset = preprocess.AugmentedDataset(augmented_samples)
+        augmented_dataset = preprocess.AugmentedDataset(augmented_samples)
 
         # Split into train (80%) and validation (20%)
-        train_size = int(0.8 * len(_dataset))
-        val_size = len(_dataset) - train_size
+        train_size = int(0.8 * len(augmented_dataset))
+        val_size = len(augmented_dataset) - train_size
 
-        train_dataset, val_dataset = random_split(_dataset, [train_size, val_size])
+        train_dataset, val_dataset = random_split(augmented_dataset, [train_size, val_size])
 
         # CenterCrop for val and RandomCrop for train
         train_dataset_transformed = preprocess.TransformWrapper(train_dataset, train_transform)

@@ -166,4 +166,4 @@ def extract_patches_from_tensor(image_tensor, patch_size, stride, chip_size):
     patches = patches_unfold.transpose(1, 2)
     patches = patches.reshape(-1, C, patch_size, patch_size)
 
-    return patches.detach().cpu().numpy()
+    return patches
