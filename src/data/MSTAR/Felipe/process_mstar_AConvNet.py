@@ -533,13 +533,6 @@ def get_all_partitions(metadata, path_metadata, file_path):
         
         # Create name suffix
         name_suffix = f"{normalize_serial(serial_num)}_{depression}deg"
-
-        # Create metadata json
-        metadata_json = {
-            "class_name": class_name,
-            "serial_number": serial_num,
-            "depression_angle": depression
-        }
         
         # Try each partition type
         partition_funcs = [
@@ -553,7 +546,12 @@ def get_all_partitions(metadata, path_metadata, file_path):
         for func in partition_funcs:
             partition = func(class_name, serial_num, depression) # partition = (path, class_id)
             if partition:
-                metadata_json["class_id"] = partition[1]
+                metadata_json = {
+                    "class_name": class_name,
+                    "serial_number": serial_num,
+                    "depression_angle": depression,
+                    "class_id": partition[1]
+                }
                 partitions.append((partition[0], name_suffix, metadata_json))
         
         return partitions
