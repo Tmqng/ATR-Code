@@ -123,6 +123,9 @@ def validation(m, ds):
     for i, data in enumerate(tqdm(ds)):
         images, labels, _ = data
 
+        images = images.to(m.device)
+        labels = labels.to(m.device).type(torch.LongTensor)
+
         predictions = m.inference(images)
         predictions = _softmax(predictions)
 
@@ -178,10 +181,11 @@ def run(epochs, dataset, classes, channels, batch_size,
         val_accuracy = validation(m, val_set)
 
         logging.info(
-            f'Epoch: {epoch + 1:03d}/{epochs:03d} | loss={np.mean(_loss):.4f} | lr={lr} | Train accuracy={val_accuracy:.2f} | Validation accuracy={val_accuracy:.2f}'
+            f'Epoch: {epoch + 1:03d}/{epochs:03d} | loss={np.mean(_loss):.4f} | lr={lr} | Train accuracy={train_accuracy:.2f} | Validation accuracy={val_accuracy:.2f}'
         )
 
         history['train_loss'].append(np.mean(_loss))
+        history['train_accuracy'].append(train_accuracy)
         history['val_accuracy'].append(val_accuracy)
 
         if experiments_path:
