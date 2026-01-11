@@ -178,7 +178,7 @@ def run(epochs, dataset, classes, channels, batch_size,
         val_accuracy = validation(m, val_set)
 
         logging.info(
-            f'Epoch: {epoch + 1:03d}/{epochs:03d} | loss={np.mean(_loss):.4f} | lr={lr} | Validation accuracy={val_accuracy:.2f}'
+            f'Epoch: {epoch + 1:03d}/{epochs:03d} | loss={np.mean(_loss):.4f} | lr={lr} | Train accuracy={val_accuracy:.2f} | Validation accuracy={val_accuracy:.2f}'
         )
 
         history['train_loss'].append(np.mean(_loss))
