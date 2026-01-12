@@ -66,7 +66,7 @@ class CenterCrop(object):
         _input = sample
 
         if len(_input.shape) < 3:
-            _input = np.expand_dims(_input, axis=2)
+            _input = np.expand_dims(_input, axis=0)
 
         _, h, w = _input.shape
         oh, ow = self.size
