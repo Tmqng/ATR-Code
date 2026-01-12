@@ -4,10 +4,10 @@ import torch
 from . import _blocks
 
 
-class Network(nn.Module):
+class AConvNet(nn.Module):
 
     def __init__(self, **params):
-        super(Network, self).__init__()
+        super(AConvNet, self).__init__()
         self.dropout_rate = params.get('dropout_rate', 0.5)
         self.classes = params.get('classes', 10)
         self.channels = params.get('channels', 1)
@@ -37,6 +37,7 @@ class Network(nn.Module):
                 shape=[3, 3, 128, self.classes], stride=1, padding='valid',
                 w_init=_w_init, b_init=nn.init.zeros_
             ),
+            nn.AdaptiveAvgPool2d(1), # added from original paper
             nn.Flatten()
         )
 
