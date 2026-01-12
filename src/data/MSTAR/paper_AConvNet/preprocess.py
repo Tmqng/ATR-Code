@@ -120,7 +120,7 @@ def augment_dataset_with_patches(dataset, patch_size=94, stride=1, chip_size=100
     augmented_samples = []
 
     # DataLoader temporaire
-    temp_loader = DataLoader(dataset, batch_size=1, shuffle=False)
+    temp_loader = DataLoader(dataset, batch_size=1, shuffle=False) 
 
     for images, labels, serial_numbers in tqdm.tqdm(temp_loader, desc=desc):
         images_squeeze = images.squeeze(0)
