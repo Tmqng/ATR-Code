@@ -25,10 +25,10 @@ class Model(object):
         self.weight_decay = params.get('weight_decay', 4e-3)
 
         self.criterion = torch.nn.CrossEntropyLoss()
-        self.optimizer = torch.optim.SGD(
+        self.optimizer = torch.optim.Adam(
             self.net.parameters(),
             lr=self.lr,
-            momentum=self.momentum,
+            betas=(self.momentum, 0.999),
             weight_decay=self.weight_decay
         )
 

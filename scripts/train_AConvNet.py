@@ -55,10 +55,8 @@ def load_dataset(path, is_train, name, batch_size, augment):
     Load train, val or test dataset and apply transformations.
     """
 
-
     val_transform = torchvision.transforms.Compose([preprocess.CenterCrop(94)])
     train_transform = torchvision.transforms.Compose([preprocess.RandomCrop(94)])
-    
 
     _dataset = loader.Dataset(
         path, name=name, is_train=is_train,
