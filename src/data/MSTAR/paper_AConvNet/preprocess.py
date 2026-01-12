@@ -38,9 +38,9 @@ class RandomCrop(object):
         _input = sample
 
         if len(_input.shape) < 3:
-            _input = np.expand_dims(_input, axis=2)
+            _input = np.expand_dims(_input, axis=0)
 
-        h, w, _ = _input.shape
+        _, h, w = _input.shape
         oh, ow = self.size
 
         dh = h - oh
@@ -50,7 +50,7 @@ class RandomCrop(object):
         oh = oh if dh > 0 else h
         ow = ow if dw > 0 else w
 
-        return _input[y: y + oh, x: x + ow, :]
+        return _input[:, y: y + oh, x: x + ow]
 
 
 class CenterCrop(object):
@@ -68,12 +68,12 @@ class CenterCrop(object):
         if len(_input.shape) < 3:
             _input = np.expand_dims(_input, axis=2)
 
-        h, w, _ = _input.shape
+        _, h, w = _input.shape
         oh, ow = self.size
         y = (h - oh) // 2
         x = (w - ow) // 2
 
-        return _input[y: y + oh, x: x + ow, :]
+        return _input[:, y: y + oh, x: x + ow]
     
 
 class TransformWrapper(object):
