@@ -55,13 +55,10 @@ def load_dataset(path, is_train, name, batch_size, augment):
     Load train, val or test dataset and apply transformations.
     """
 
-    if augment:
-        val_transform = torchvision.transforms.Compose([preprocess.CenterCrop(94)])
-        train_transform = torchvision.transforms.Compose([preprocess.RandomCrop(94)])
+
+    val_transform = torchvision.transforms.Compose([preprocess.CenterCrop(94)])
+    train_transform = torchvision.transforms.Compose([preprocess.RandomCrop(94)])
     
-    else:
-        val_transform = torchvision.transforms.Compose([torchvision.transforms.ToTensor(), preprocess.CenterCrop(94)])
-        train_transform = torchvision.transforms.Compose([torchvision.transforms.ToTensor(), preprocess.RandomCrop(94)])
 
     _dataset = loader.Dataset(
         path, name=name, is_train=is_train,
@@ -174,7 +171,7 @@ def validation(m, ds):
 def run(epochs, dataset, classes, channels, batch_size,
         lr, lr_step, lr_decay, weight_decay, dropout_rate,
         model_name, experiments_path=None):
-    train_set, val_set = load_dataset(DATA_PATH, True, dataset, batch_size, augment=True)
+    train_set, val_set = load_dataset(DATA_PATH, True, dataset, batch_size, augment=False)
     # test_set = load_dataset(DATA_PATH, False, dataset, batch_size)
 
     m = AConvNet.Model(
