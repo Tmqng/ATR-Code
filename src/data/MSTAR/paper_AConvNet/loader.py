@@ -55,7 +55,8 @@ class Dataset(torch.utils.data.Dataset):
             image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)  # dim 2 if it's png
             if len(image.shape) < 3:
                 image = np.expand_dims(image, axis=0) # add channel dim
-            self.images.append(image)
+            image_tensor = torch.from_numpy(image).float()
+            self.images.append(image_tensor)
             # self.images.append(np.load(image_path))
 
             with open(label_path, mode='r', encoding='utf-8') as f:
