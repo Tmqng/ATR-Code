@@ -24,10 +24,10 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.join(project_root, "src"))
 
 # modules in src
-from data.MSTAR.paper_AConvNet import preprocess
-from data.MSTAR.paper_AConvNet import loader
-from utils import common
-from models import AConvNet
+from data.MSTAR.paper_AConvNet import preprocess # type: ignore
+from data.MSTAR.paper_AConvNet import loader # type: ignore
+from utils import common # type: ignore
+from models import AConvNet # type: ignore
 
 DATA_PATH = 'datasets/MSTAR/MSTAR_IMG_JSON'
 
@@ -123,13 +123,6 @@ def validation(m, ds):
     m.net.eval()
     _softmax = torch.nn.Softmax(dim=1)
     for i, data in enumerate(tqdm(ds)):
-        if i == 0:
-            print(f"Data structure: {type(data)}")
-            print(f"Data length: {len(data)}")
-            images, labels, _ = data
-            print(f"Images shape: {images.shape}")
-            print(f"Labels shape: {labels.shape}")
-            print(f"Unique labels in batch: {torch.unique(labels)}")
         images, labels, _ = data
 
         images = images.to(m.device)
