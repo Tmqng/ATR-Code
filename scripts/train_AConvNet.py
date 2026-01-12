@@ -93,18 +93,9 @@ def load_dataset(path, is_train, name, batch_size, augment):
 
         train_dataset, val_dataset = random_split(augmented_dataset, [train_size, val_size])
 
-        for images, _, _ in train_dataset:
-            print(images.shape)
-            break
-
         # CenterCrop for val and RandomCrop for train
         train_dataset_transformed = preprocess.TransformWrapper(train_dataset, train_transform)
         val_dataset_transformed = preprocess.TransformWrapper(val_dataset, val_transform)
-
-
-        for images, _, _ in train_dataset_transformed:
-            print(images.shape)
-            break
         
         train_data_loader = torch.utils.data.DataLoader(
             train_dataset_transformed, batch_size=batch_size, shuffle=is_train, num_workers=1
