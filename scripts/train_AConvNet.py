@@ -66,7 +66,7 @@ def load_dataset(path, is_train, name, batch_size):
 
     if is_train:
 
-        # TODO Data_augmentation (in preprocess file)
+        # Data_augmentation (in preprocess file)
         print(f"Augmenting training data with patches...")
         # Extract patches from training data
         augmented_samples = preprocess.augment_dataset_with_patches(
