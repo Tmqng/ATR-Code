@@ -43,7 +43,7 @@ FLAGS = flags.FLAGS
 
 common.set_random_seed(12321)
 
-def load_dataset(path, is_train, name, batch_size):
+def load_dataset(path, is_train, name, batch_size, augment):
     """
     Docstring for load_dataset
     
@@ -55,9 +55,13 @@ def load_dataset(path, is_train, name, batch_size):
     Load train, val or test dataset and apply transformations.
     """
 
-    val_transform = torchvision.transforms.Compose([preprocess.CenterCrop(94)])
-
-    train_transform = torchvision.transforms.Compose([preprocess.RandomCrop(94)])
+    if augment:
+        val_transform = torchvision.transforms.Compose([preprocess.CenterCrop(94)])
+        train_transform = torchvision.transforms.Compose([preprocess.RandomCrop(94)])
+    
+    else:
+        val_transform = torchvision.transforms.Compose([torchvision.transforms.ToTensor(), preprocess.CenterCrop(94)])
+        train_transform = torchvision.transforms.Compose([torchvision.transforms.ToTensor(), preprocess.RandomCrop(94)])
 
     _dataset = loader.Dataset(
         path, name=name, is_train=is_train,
@@ -66,24 +70,25 @@ def load_dataset(path, is_train, name, batch_size):
 
     if is_train:
 
-        # Data_augmentation (in preprocess file)
-        print(f"Augmenting training data with patches...")
-        # Extract patches from training data
-        augmented_samples = preprocess.augment_dataset_with_patches(
-            _dataset,
-            # patch_size=patch_size,
-            # stride=stride,
-            # chip_size=chip_size,
-            desc="Train augmentation"
-        )
+        if augment:
+            # Data_augmentation (in preprocess file)
+            print(f"Augmenting training data with patches...")
+            # Extract patches from training data
+            augmented_samples = preprocess.augment_dataset_with_patches(
+                _dataset,
+                # patch_size=patch_size,
+                # stride=stride,
+                # chip_size=chip_size,
+                desc="Train augmentation"
+            )
 
-        print(f"\nRésultats augmentation :")
-        print(f"  Train : {len(_dataset)} images → {len(augmented_samples)} patches")
-        print(f"  Facteur : ~{len(augmented_samples) / len(_dataset):.0f}x (13x13 = 169 patches/image)")
+            print(f"\nRésultats augmentation :")
+            print(f"  Train : {len(_dataset)} images → {len(augmented_samples)} patches")
+            print(f"  Facteur : ~{len(augmented_samples) / len(_dataset):.0f}x (13x13 = 169 patches/image)")
 
-        augmented_dataset = preprocess.AugmentedDataset(augmented_samples)
-
-        # augmented_dataset = _dataset
+            augmented_dataset = preprocess.AugmentedDataset(augmented_samples)
+        else:
+            augmented_dataset = _dataset
 
         # Split into train (80%) and validation (20%)
         train_size = int(0.8 * len(augmented_dataset))
@@ -91,10 +96,19 @@ def load_dataset(path, is_train, name, batch_size):
 
         train_dataset, val_dataset = random_split(augmented_dataset, [train_size, val_size])
 
+        for images, _, _ in train_dataset:
+            print(images.shape)
+            break
+
         # CenterCrop for val and RandomCrop for train
         train_dataset_transformed = preprocess.TransformWrapper(train_dataset, train_transform)
         val_dataset_transformed = preprocess.TransformWrapper(val_dataset, val_transform)
 
+
+        for images, _, _ in train_dataset_transformed:
+            print(images.shape)
+            break
+        
         train_data_loader = torch.utils.data.DataLoader(
             train_dataset_transformed, batch_size=batch_size, shuffle=is_train, num_workers=1
         )
@@ -102,6 +116,15 @@ def load_dataset(path, is_train, name, batch_size):
         val_data_loader = torch.utils.data.DataLoader(
             val_dataset_transformed, batch_size=batch_size, shuffle=False, num_workers=1
         )
+
+        # Check first batch
+        for images, labels, _ in train_data_loader:
+            print(f"\nFirst batch shapes:")
+            print(f"  Images: {images.shape}, dtype: {images.dtype}")
+            print(f"  Labels: {labels.shape}, dtype: {labels.dtype}")
+            print(f"  Labels values: {labels.tolist()[:10]}")
+            print(f"  Unique labels: {torch.unique(labels).tolist()}")
+            break
 
         return train_data_loader, val_data_loader
 
@@ -151,7 +174,7 @@ def validation(m, ds):
 def run(epochs, dataset, classes, channels, batch_size,
         lr, lr_step, lr_decay, weight_decay, dropout_rate,
         model_name, experiments_path=None):
-    train_set, val_set = load_dataset(DATA_PATH, True, dataset, batch_size)
+    train_set, val_set = load_dataset(DATA_PATH, True, dataset, batch_size, augment=True)
     # test_set = load_dataset(DATA_PATH, False, dataset, batch_size)
 
     m = AConvNet.Model(
