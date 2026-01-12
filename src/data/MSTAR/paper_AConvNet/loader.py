@@ -52,8 +52,9 @@ class Dataset(torch.utils.data.Dataset):
         label_list = sorted(label_list, key=os.path.basename)
 
         for image_path, label_path in tqdm.tqdm(zip(image_list, label_list), desc=f'load {mode} data set', total=len(label_list)):
-            image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)  # dim 2
-            # image = np.expand_dims(image, axis=0) # add channel dim
+            image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)  # dim 2 if it's png
+            if len(image.shape) < 3:
+                image = np.expand_dims(image, axis=0) # add channel dim
             self.images.append(image)
             # self.images.append(np.load(image_path))
 
