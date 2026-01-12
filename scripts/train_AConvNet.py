@@ -171,7 +171,7 @@ def validation(m, ds):
 def run(epochs, dataset, classes, channels, batch_size,
         lr, lr_step, lr_decay, weight_decay, dropout_rate,
         model_name, experiments_path=None):
-    train_set, val_set = load_dataset(DATA_PATH, True, dataset, batch_size, augment=False)
+    train_set, val_set = load_dataset(DATA_PATH, True, dataset, batch_size, augment=True)
     # test_set = load_dataset(DATA_PATH, False, dataset, batch_size)
 
     m = AConvNet.Model(
