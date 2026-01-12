@@ -50,7 +50,7 @@ class RandomCrop(object):
         oh = oh if dh > 0 else h
         ow = ow if dw > 0 else w
 
-        return _input[:, y: y + oh, x: x + ow]
+        return _input[y: y + oh, x: x + ow, :]
 
 
 class CenterCrop(object):
@@ -73,7 +73,7 @@ class CenterCrop(object):
         y = (h - oh) // 2
         x = (w - ow) // 2
 
-        return _input[:, y: y + oh, x: x + ow]
+        return _input[y: y + oh, x: x + ow, :]
     
 
 class TransformWrapper(object):
