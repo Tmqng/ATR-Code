@@ -9,6 +9,8 @@ import json
 import glob
 import os
 
+import logging
+
 # import utils.common as common
 project_root = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))))
 
@@ -51,7 +53,7 @@ class Dataset(torch.utils.data.Dataset):
 
         for image_path, label_path in tqdm.tqdm(zip(image_list, label_list), desc=f'load {mode} data set', total=len(label_list)):
             image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)  # dim 2
-            print(image.shape)
+            logging.info(image.shape)
             # image = np.expand_dims(image, axis=0) # add channel dim
             self.images.append(image)
             # self.images.append(np.load(image_path))
