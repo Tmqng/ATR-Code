@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 
 import numpy as np
 import torch
@@ -8,13 +9,12 @@ from absl import app, flags, logging
 from torch.utils.data import DataLoader, random_split
 from tqdm import tqdm
 
-from src.models._base import Model
-from src.models.alexnet.network import AlexNet
-from src.utils import common
+from models._base import Model
+from models.alexnet.network import AlexNet
+from utils import common
 
-# project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# sys.path.append(os.path.join(project_root, "src"))
-
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.join(project_root, "src"))
 
 DATA_PATH = "datasets/MSTAR/MSTAR_IMG_JSON"
 model_str = "AlexNet"
