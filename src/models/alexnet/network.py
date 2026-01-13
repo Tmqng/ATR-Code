@@ -3,7 +3,7 @@ import torch.nn as nn
 
 
 class AlexNet(nn.Module):
-    def __init__(self, num_classes=10, dropout_rate=0.5):
+    def __init__(self, classes=10, dropout_rate=0.5):
         super(AlexNet, self).__init__()
         self.model_str = "AlexNet"
 
@@ -32,7 +32,7 @@ class AlexNet(nn.Module):
             nn.Dropout(p=dropout_rate),
             nn.Linear(4096, 4096),  # FC2
             nn.ReLU(inplace=True),
-            nn.Linear(4096, num_classes),  # FC3
+            nn.Linear(4096, classes),  # FC3
         )
 
     def forward(self, x):
