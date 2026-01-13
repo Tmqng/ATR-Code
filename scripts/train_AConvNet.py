@@ -24,29 +24,33 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.join(project_root, "src"))
 
 # modules in src
-from data.MSTAR.paper_AConvNet import preprocess # type: ignore
-from data.MSTAR.paper_AConvNet import loader # type: ignore
-from utils import common # type: ignore
-from models import AConvNet # type: ignore
+from data.MSTAR.paper_AConvNet import preprocess  # type: ignore
+from data.MSTAR.paper_AConvNet import loader  # type: ignore
+from utils import common  # type: ignore
+from models import AConvNet  # type: ignore
+from models._base import Model  # type: ignore
 
-DATA_PATH = 'datasets/MSTAR/MSTAR_IMG_JSON'
+DATA_PATH = "datasets/MSTAR/MSTAR_IMG_JSON"
 
 # DATA_PATH = 'datasets/MSTAR/mstar_data_paper_AConvNet/'
 
-model_str = 'AConvNet'
+model_str = "AConvNet"
 
 
-flags.DEFINE_string('experiments_path', os.path.join(common.project_root, 'experiments'), help='')
-flags.DEFINE_string('config_name', f'{model_str}/config/AConvNet-SOC.json', help='')
+flags.DEFINE_string(
+    "experiments_path", os.path.join(common.project_root, "experiments"), help=""
+)
+flags.DEFINE_string("config_name", f"{model_str}/config/AConvNet-SOC.json", help="")
 FLAGS = flags.FLAGS
 
 
 common.set_random_seed(12321)
 
+
 def load_dataset(path, is_train, name, batch_size, augment):
     """
     Docstring for load_dataset
-    
+
     :param path: Description
     :param is_train: Description
     :param name: Description
@@ -58,10 +62,7 @@ def load_dataset(path, is_train, name, batch_size, augment):
     val_transform = torchvision.transforms.Compose([preprocess.CenterCrop(94)])
     train_transform = torchvision.transforms.Compose([preprocess.RandomCrop(94)])
 
-    _dataset = loader.Dataset(
-        path, name=name, is_train=is_train,
-        transform=None
-    )
+    _dataset = loader.Dataset(path, name=name, is_train=is_train, transform=None)
 
     if is_train:
 
@@ -74,12 +75,16 @@ def load_dataset(path, is_train, name, batch_size, augment):
                 # patch_size=patch_size,
                 # stride=stride,
                 # chip_size=chip_size,
-                desc="Train augmentation"
+                desc="Train augmentation",
             )
 
             print(f"\nRésultats augmentation :")
-            print(f"  Train : {len(_dataset)} images → {len(augmented_samples)} patches")
-            print(f"  Facteur : ~{len(augmented_samples) / len(_dataset):.0f}x (13x13 = 169 patches/image)")
+            print(
+                f"  Train : {len(_dataset)} images → {len(augmented_samples)} patches"
+            )
+            print(
+                f"  Facteur : ~{len(augmented_samples) / len(_dataset):.0f}x (13x13 = 169 patches/image)"
+            )
 
             augmented_dataset = preprocess.AugmentedDataset(augmented_samples)
         else:
@@ -89,14 +94,23 @@ def load_dataset(path, is_train, name, batch_size, augment):
         train_size = int(0.8 * len(augmented_dataset))
         val_size = len(augmented_dataset) - train_size
 
-        train_dataset, val_dataset = random_split(augmented_dataset, [train_size, val_size])
+        train_dataset, val_dataset = random_split(
+            augmented_dataset, [train_size, val_size]
+        )
 
         # CenterCrop for val and RandomCrop for train
-        train_dataset_transformed = preprocess.TransformWrapper(train_dataset, train_transform)
-        val_dataset_transformed = preprocess.TransformWrapper(val_dataset, val_transform)
-        
+        train_dataset_transformed = preprocess.TransformWrapper(
+            train_dataset, train_transform
+        )
+        val_dataset_transformed = preprocess.TransformWrapper(
+            val_dataset, val_transform
+        )
+
         train_data_loader = torch.utils.data.DataLoader(
-            train_dataset_transformed, batch_size=batch_size, shuffle=is_train, num_workers=1
+            train_dataset_transformed,
+            batch_size=batch_size,
+            shuffle=is_train,
+            num_workers=1,
         )
 
         val_data_loader = torch.utils.data.DataLoader(
@@ -114,11 +128,13 @@ def load_dataset(path, is_train, name, batch_size, augment):
 
         return train_data_loader, val_data_loader
 
-
     else:
         test_dataset_transformed = preprocess.TransformWrapper(_dataset, val_transform)
         data_loader = torch.utils.data.DataLoader(
-            test_dataset_transformed, batch_size=batch_size, shuffle=is_train, num_workers=1
+            test_dataset_transformed,
+            batch_size=batch_size,
+            shuffle=is_train,
+            num_workers=1,
         )
         return data_loader
 
@@ -157,31 +173,56 @@ def validation(m, ds):
     return accuracy
 
 
-def run(epochs, dataset, classes, channels, batch_size,
-        lr, lr_step, lr_decay, weight_decay, dropout_rate,
-        model_name, experiments_path=None):
-    train_set, val_set = load_dataset(DATA_PATH, True, dataset, batch_size, augment=True)
+def run(
+    epochs,
+    dataset,
+    classes,
+    channels,
+    batch_size,
+    lr,
+    lr_step,
+    lr_decay,
+    weight_decay,
+    dropout_rate,
+    model_name,
+    experiments_path=None,
+):
+    train_set, val_set = load_dataset(
+        DATA_PATH, True, dataset, batch_size, augment=True
+    )
     # test_set = load_dataset(DATA_PATH, False, dataset, batch_size)
 
-    m = AConvNet.Model(
-        classes=classes, dropout_rate=dropout_rate, channels=channels,
-        lr=lr, lr_step=lr_step, lr_decay=lr_decay,
-        weight_decay=weight_decay
+    net = AConvNet.network.AConvNet(
+        classes=classes,
+        channels=channels,
+        dropout_rate=dropout_rate,
     )
 
-    model_path = os.path.join(experiments_path, f'{model_str}/models/{model_name}')
+    m = Model(
+        net=net,
+        # classes=classes,
+        # dropout_rate=dropout_rate,
+        # channels=channels,
+        lr=lr,
+        lr_step=lr_step,
+        lr_decay=lr_decay,
+        weight_decay=weight_decay,
+        criterion=torch.nn.CrossEntropyLoss(),
+    )
+
+    model_path = os.path.join(experiments_path, f"{model_str}/models/{model_name}")
     if not os.path.exists(model_path):
         os.makedirs(model_path, exist_ok=True)
 
-    history_path = os.path.join(experiments_path, f'{model_str}/history')
+    history_path = os.path.join(experiments_path, f"{model_str}/history")
     if not os.path.exists(history_path):
         os.makedirs(history_path, exist_ok=True)
 
     history = {
-        'train_loss': [],
-        'train_accuracy': [],
-        'val_loss': [],
-        'val_accuracy': []
+        "train_loss": [],
+        "train_accuracy": [],
+        "val_loss": [],
+        "val_accuracy": [],
     }
 
     for epoch in range(epochs):
@@ -200,49 +241,63 @@ def run(epochs, dataset, classes, channels, batch_size,
         val_accuracy = validation(m, val_set)
 
         logging.info(
-            f'Epoch: {epoch + 1:03d}/{epochs:03d} | loss={np.mean(_loss):.4f} | lr={lr} | Train accuracy={train_accuracy:.2f} | Validation accuracy={val_accuracy:.2f}'
+            f"Epoch: {epoch + 1:03d}/{epochs:03d} | loss={np.mean(_loss):.4f} | lr={lr} | Train accuracy={train_accuracy:.2f} | Validation accuracy={val_accuracy:.2f}"
         )
 
-        history['train_loss'].append(np.mean(_loss))
-        history['train_accuracy'].append(train_accuracy)
-        history['val_accuracy'].append(val_accuracy)
+        history["train_loss"].append(np.mean(_loss))
+        history["train_accuracy"].append(train_accuracy)
+        history["val_accuracy"].append(val_accuracy)
 
         if experiments_path:
-            m.save(os.path.join(model_path, f'model-{epoch + 1:03d}.pth'))
+            m.save(os.path.join(model_path, f"model-{epoch + 1:03d}.pth"))
 
-        with open(os.path.join(history_path, f'history-{model_name}.json'), mode='w', encoding='utf-8') as f:
+        with open(
+            os.path.join(history_path, f"history-{model_name}.json"),
+            mode="w",
+            encoding="utf-8",
+        ) as f:
             json.dump(history, f, ensure_ascii=True, indent=2)
 
 
 def main(_):
-    logging.info('Start')
+    logging.info("Start")
     experiments_path = FLAGS.experiments_path
     config_name = FLAGS.config_name
 
     config = common.load_config(os.path.join(experiments_path, config_name))
 
-    dataset = config['dataset']
-    classes = config['num_classes']
-    channels = config['channels']
-    epochs = config['epochs']
-    batch_size = config['batch_size']
+    dataset = config["dataset"]
+    classes = config["num_classes"]
+    channels = config["channels"]
+    epochs = config["epochs"]
+    batch_size = config["batch_size"]
 
-    lr = config['lr']
-    lr_step = config['lr_step']
-    lr_decay = config['lr_decay']
+    lr = config["lr"]
+    lr_step = config["lr_step"]
+    lr_decay = config["lr_decay"]
 
-    weight_decay = config['weight_decay']
-    dropout_rate = config['dropout_rate']
+    weight_decay = config["weight_decay"]
+    dropout_rate = config["dropout_rate"]
 
-    model_name = config['model_name']
+    model_name = config["model_name"]
 
-    run(epochs, dataset, classes, channels, batch_size,
-        lr, lr_step, lr_decay, weight_decay, dropout_rate,
-        model_name, experiments_path)
+    run(
+        epochs,
+        dataset,
+        classes,
+        channels,
+        batch_size,
+        lr,
+        lr_step,
+        lr_decay,
+        weight_decay,
+        dropout_rate,
+        model_name,
+        experiments_path,
+    )
 
-    logging.info('Finish')
+    logging.info("Finish")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(main)
-    

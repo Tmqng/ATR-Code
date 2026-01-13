@@ -6,37 +6,38 @@ import torch.nn as nn
 
 class Model(object):
     def __init__(self, **params):
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print("Device used:", self.device)
-        self.net = network.AConvNet(
-            classes=params.get('classes', 10),
-            channels=params.get('channels', 1),
-            dropout_rate=params.get('dropout_rate', 0.5)
+        self.net = params.get(
+            "net",
+            network.AConvNet(
+                classes=params.get("classes", 10),
+                channels=params.get("channels", 1),
+                dropout_rate=params.get("dropout_rate", 0.5),
+            ),
         )
         self.net.to(self.device)
 
-        self.lr = params.get('lr', 1e-3)
-        self.lr_step = params.get('lr_step', [50])
-        self.lr_decay = params.get('lr_decay', 0.1)
+        self.lr = params.get("lr", 1e-3)
+        self.lr_step = params.get("lr_step", [50])
+        self.lr_decay = params.get("lr_decay", 0.1)
 
         self.lr_scheduler = None
 
-        self.momentum = params.get('momentum', 0.9)
-        self.weight_decay = params.get('weight_decay', 4e-3)
+        self.momentum = params.get("momentum", 0.9)
+        self.weight_decay = params.get("weight_decay", 4e-3)
 
-        self.criterion = torch.nn.CrossEntropyLoss()
+        self.criterion = params.get("criterion", torch.nn.CrossEntropyLoss())
         self.optimizer = torch.optim.Adam(
             self.net.parameters(),
             lr=self.lr,
             betas=(self.momentum, 0.999),
-            weight_decay=self.weight_decay
+            weight_decay=self.weight_decay,
         )
 
         if self.lr_decay:
             self.lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
-                optimizer=self.optimizer,
-                milestones=self.lr_step,
-                gamma=self.lr_decay
+                optimizer=self.optimizer, milestones=self.lr_step, gamma=self.lr_decay
             )
 
     def optimize(self, x, y):
