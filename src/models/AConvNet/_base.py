@@ -13,6 +13,7 @@ class Model(object):
             channels=params.get('channels', 1),
             dropout_rate=params.get('dropout_rate', 0.5)
         )
+        # self.net = params.get('net')
         self.net.to(self.device)
 
         self.lr = params.get('lr', 1e-3)
@@ -24,13 +25,14 @@ class Model(object):
         self.momentum = params.get('momentum', 0.9)
         self.weight_decay = params.get('weight_decay', 4e-3)
 
-        self.criterion = torch.nn.CrossEntropyLoss()
+        self.criterion = torch.nn.CrossEntropyLoss() # = params.get('criterion')
         self.optimizer = torch.optim.Adam(
             self.net.parameters(),
             lr=self.lr,
             betas=(self.momentum, 0.999),
             weight_decay=self.weight_decay
         )
+        # self.optimizer = params.get('optimizer')
 
         if self.lr_decay:
             self.lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
@@ -57,5 +59,5 @@ class Model(object):
         torch.save(self.net.state_dict(), path)
 
     def load(self, path):
-        self.net.load_state_dict(torch.load(path))
+        self.net.load_state_dict(torch.load(path, map_location=self.device))
         self.net.eval()
