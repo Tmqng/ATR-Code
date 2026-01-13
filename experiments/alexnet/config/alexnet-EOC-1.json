@@ -1,10 +1,10 @@
 {
-  "model_name": "AlexBet-EOC-1",
+  "model_name": "alexnet-EOC-1",
   "dataset": "EOC-1",
   "num_classes": 4,
   "channels": 1,
   "batch_size": 100,
-  "epochs": 100,
+  "epochs": 10,
   "momentum": 0.9,
   "lr": 1e-3,
   "lr_step": [

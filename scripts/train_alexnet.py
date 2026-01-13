@@ -9,12 +9,14 @@ from absl import app, flags, logging
 from torch.utils.data import DataLoader, random_split
 from tqdm import tqdm
 
+
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.join(project_root, "src"))
+
 from models._base import Model
 from models.alexnet.network import AlexNet
 from utils import common
 
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(os.path.join(project_root, "src"))
 
 DATA_PATH = "datasets/MSTAR/MSTAR_IMG_JSON"
 model_str = "AlexNet"
@@ -129,9 +131,7 @@ def run(
     model_name,
     experiments_path=None,
 ):
-    train_set, val_set = load_dataset(
-        DATA_PATH, True, dataset, batch_size, augment=True
-    )
+    train_set, val_set = load_dataset(DATA_PATH, batch_size=batch_size)
     # test_set = load_dataset(DATA_PATH, False, dataset, batch_size)
 
     net = AlexNet(classes=classes, dropout_rate=dropout_rate)

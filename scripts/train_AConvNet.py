@@ -1,142 +1,89 @@
-from absl import logging
-from absl import flags
-from absl import app
-
-from tqdm import tqdm
-
-from torch.utils import tensorboard
-from torch.utils.data import DataLoader, random_split
-
-import torchvision
-import torch
+import json
+import os
+import sys
 
 import numpy as np
+import torch
+from torchvision import datasets, transforms
+from absl import app, flags, logging
+from torch.utils.data import DataLoader, random_split
+from tqdm import tqdm
 
-import json
 
-import sys
-import os
-
-# Get the project root
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-# Add src/ to path
 sys.path.append(os.path.join(project_root, "src"))
 
-# modules in src
-from data.MSTAR.paper_AConvNet import preprocess  # type: ignore
-from data.MSTAR.paper_AConvNet import loader  # type: ignore
-from utils import common  # type: ignore
-from models import AConvNet  # type: ignore
-from models._base import Model  # type: ignore
+from models._base import Model
+from models.alexnet.network import AlexNet
+from utils import common
+
 
 DATA_PATH = "datasets/MSTAR/MSTAR_IMG_JSON"
-
-# DATA_PATH = 'datasets/MSTAR/mstar_data_paper_AConvNet/'
-
-model_str = "AConvNet"
-
-
+model_str = "AlexNet"
 flags.DEFINE_string(
     "experiments_path", os.path.join(common.project_root, "experiments"), help=""
 )
-flags.DEFINE_string("config_name", f"{model_str}/config/AConvNet-SOC.json", help="")
+flags.DEFINE_string("config_name", f"{model_str}/config/{model_str}-SOC.json", help="")
 FLAGS = flags.FLAGS
 
+common.set_random_seed(42)
 
-common.set_random_seed(12321)
+
+# TODO: Load dataset
+# TODO: Train model
+# TODO:
 
 
-def load_dataset(path, is_train, name, batch_size, augment):
+def load_dataset(
+    data_path: str, batch_size: int = 32, train_split: float = 0.8
+) -> tuple[DataLoader, DataLoader]:
     """
-    Docstring for load_dataset
+    Load MSTAR data using native PyTorch tools for AlexNet.
 
-    :param path: Description
-    :param is_train: Description
-    :param name: Description
-    :param batch_size: Description
-
-    Load train, val or test dataset and apply transformations.
+    Args:
+        data_path: Path to the 'train' folder of the dataset.
+        batch_size: Number of samples per batch.
+        train_split: Proportion of data to use for training.
     """
 
-    val_transform = torchvision.transforms.Compose([preprocess.CenterCrop(94)])
-    train_transform = torchvision.transforms.Compose([preprocess.RandomCrop(94)])
+    # Standard AlexNet input size
+    input_size = (227, 227)
 
-    _dataset = loader.Dataset(path, name=name, is_train=is_train, transform=None)
+    # Note: We include Grayscale(1) because ImageFolder loads as RGB by default
+    shared_transforms = transforms.Compose(
+        [
+            transforms.Grayscale(num_output_channels=1),
+            transforms.Resize(input_size),
+            transforms.ToTensor(),
+        ]
+    )
 
-    if is_train:
+    data_path = os.path.join(
+        project_root, "datasets", "MSTAR", "MSTAR_IMG_JSON", "EOC-1", "train"
+    )
+    # Load the entire training directory
+    full_dataset = datasets.ImageFolder(root=data_path, transform=shared_transforms)
 
-        if augment:
-            # Data_augmentation (in preprocess file)
-            print(f"Augmenting training data with patches...")
-            # Extract patches from training data
-            augmented_samples = preprocess.augment_dataset_with_patches(
-                _dataset,
-                # patch_size=patch_size,
-                # stride=stride,
-                # chip_size=chip_size,
-                desc="Train augmentation",
-            )
+    # Calculate split lengths
+    train_count = int(train_split * len(full_dataset))
+    val_count = len(full_dataset) - train_count
 
-            print(f"\nRésultats augmentation :")
-            print(
-                f"  Train : {len(_dataset)} images → {len(augmented_samples)} patches"
-            )
-            print(
-                f"  Facteur : ~{len(augmented_samples) / len(_dataset):.0f}x (13x13 = 169 patches/image)"
-            )
+    # Deterministic split
+    train_subset, val_subset = random_split(
+        full_dataset,
+        [train_count, val_count],
+        generator=torch.Generator().manual_seed(42),
+    )
 
-            augmented_dataset = preprocess.AugmentedDataset(augmented_samples)
-        else:
-            augmented_dataset = _dataset
+    train_loader = DataLoader(
+        train_subset, batch_size=batch_size, shuffle=True, num_workers=2
+    )
 
-        # Split into train (80%) and validation (20%)
-        train_size = int(0.8 * len(augmented_dataset))
-        val_size = len(augmented_dataset) - train_size
+    val_loader = DataLoader(
+        val_subset, batch_size=batch_size, shuffle=False, num_workers=2
+    )
 
-        train_dataset, val_dataset = random_split(
-            augmented_dataset, [train_size, val_size]
-        )
-
-        # CenterCrop for val and RandomCrop for train
-        train_dataset_transformed = preprocess.TransformWrapper(
-            train_dataset, train_transform
-        )
-        val_dataset_transformed = preprocess.TransformWrapper(
-            val_dataset, val_transform
-        )
-
-        train_data_loader = torch.utils.data.DataLoader(
-            train_dataset_transformed,
-            batch_size=batch_size,
-            shuffle=is_train,
-            num_workers=1,
-        )
-
-        val_data_loader = torch.utils.data.DataLoader(
-            val_dataset_transformed, batch_size=batch_size, shuffle=False, num_workers=1
-        )
-
-        # Check first batch
-        for images, labels, _ in train_data_loader:
-            print(f"\nFirst batch shapes:")
-            print(f"  Images: {images.shape}, dtype: {images.dtype}")
-            print(f"  Labels: {labels.shape}, dtype: {labels.dtype}")
-            print(f"  Labels values: {labels.tolist()[:10]}")
-            print(f"  Unique labels: {torch.unique(labels).tolist()}")
-            break
-
-        return train_data_loader, val_data_loader
-
-    else:
-        test_dataset_transformed = preprocess.TransformWrapper(_dataset, val_transform)
-        data_loader = torch.utils.data.DataLoader(
-            test_dataset_transformed,
-            batch_size=batch_size,
-            shuffle=is_train,
-            num_workers=1,
-        )
-        return data_loader
+    return train_loader, val_loader
 
 
 @torch.no_grad()
@@ -148,7 +95,7 @@ def validation(m, ds):
     m.net.eval()
     _softmax = torch.nn.Softmax(dim=1)
     for i, data in enumerate(tqdm(ds)):
-        images, labels, _ = data
+        images, labels = data
 
         images = images.to(m.device)
         labels = labels.to(m.device)
@@ -187,22 +134,13 @@ def run(
     model_name,
     experiments_path=None,
 ):
-    train_set, val_set = load_dataset(
-        DATA_PATH, True, dataset, batch_size, augment=True
-    )
+    train_set, val_set = load_dataset(DATA_PATH, batch_size=batch_size)
     # test_set = load_dataset(DATA_PATH, False, dataset, batch_size)
 
-    net = AConvNet.network.AConvNet(
-        classes=classes,
-        channels=channels,
-        dropout_rate=dropout_rate,
-    )
+    net = AlexNet(classes=classes, dropout_rate=dropout_rate)
 
     m = Model(
         net=net,
-        # classes=classes,
-        # dropout_rate=dropout_rate,
-        # channels=channels,
         lr=lr,
         lr_step=lr_step,
         lr_decay=lr_decay,
@@ -230,7 +168,7 @@ def run(
 
         m.net.train()
         for i, data in enumerate(tqdm(train_set)):
-            images, labels, _ = data
+            images, labels = data
             _loss.append(m.optimize(images, labels))
 
         if m.lr_scheduler:
