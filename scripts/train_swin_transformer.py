@@ -18,7 +18,7 @@ from models.swin_transformer.utils import load_dataset, validation
 from utils import common
 from models.swin_transformer.utils import train_epoch, validate
 
-DATA_PATH = "datasets/MSTAR/MSTAR_IMG_JSON/SOC-1"
+DATA_PATH = "datasets/MSTAR_IMG_JSON/SOC-1"
 model_str = "swin_transformer"
 flags.DEFINE_string("experiments_path", os.path.join(common.project_root, "experiments"), help="")
 flags.DEFINE_string("config_name", f"{model_str}/config/{model_str}-SOC-1.json", help="")
