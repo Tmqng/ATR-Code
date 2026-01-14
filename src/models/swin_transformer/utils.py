@@ -229,7 +229,7 @@ def train_epoch(model, loader, criterion, optimizer, scheduler, scaler, config, 
             images = F.pad(images, (0, pad, 0, pad), mode="constant", value=0)
 
         # Forward avec mixed precision
-        with torch.amp.autocast(enabled=config["use_amp"]):
+        with torch.amp.autocast(device_type=model.device, enabled=config["use_amp"]):
             outputs = model.net(images)
             loss = criterion(outputs, labels)
 
