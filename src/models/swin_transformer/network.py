@@ -27,7 +27,7 @@ def create_swin_model(config):
     logging.info(summary(
             model,
             input_size=(1, 1, config["img_size"], config["img_size"]),
-            device=config["device"],
+            device=model.device,
             verbose=0,
         ))
 
