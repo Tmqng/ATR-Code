@@ -212,24 +212,24 @@ def validation(m, ds):
 
 
 
-def train_epoch(model, loader, criterion, optimizer, scheduler, scaler, cfg, epoch):
+def train_epoch(model, loader, criterion, optimizer, scheduler, scaler, config, epoch):
     """Entraîne le modèle pour une époque"""
     model.net.train()
 
     losses = AverageMeter()
     accs = AverageMeter()
 
-    pbar = tqdm(loader, desc=f"Epoch {epoch + 1}/{cfg.epochs} [Train]")
+    pbar = tqdm(loader, desc=f"Epoch {epoch + 1}/{config["epochs"]} [Train]")
     for batch_idx, (images, labels) in enumerate(pbar):
-        images, labels = images.to(cfg.device), labels.to(cfg.device)
+        images, labels = images.to(config["device"]), labels.to(config["device"])
 
         # Padding si nécessaire (94 -> 96)
-        if images.size(-1) != cfg.img_size:
-            pad = cfg.img_size - images.size(-1)
+        if images.size(-1) != config["img_size"]:
+            pad = config["img_size"] - images.size(-1)
             images = F.pad(images, (0, pad, 0, pad), mode="constant", value=0)
 
         # Forward avec mixed precision
-        with torch.amp.autocast(enabled=cfg.use_amp):
+        with torch.amp.autocast(enabled=config["use_amp"]):
             outputs = model.net(images)
             loss = criterion(outputs, labels)
 
@@ -259,7 +259,7 @@ def train_epoch(model, loader, criterion, optimizer, scheduler, scaler, cfg, epo
     return losses.avg, accs.avg
 
 
-def validate(model, loader, criterion, cfg, desc="Val"):
+def validate(model, loader, criterion, config, desc="Val"):
     """Évalue le modèle"""
     model.eval()
 
@@ -272,15 +272,15 @@ def validate(model, loader, criterion, cfg, desc="Val"):
     with torch.no_grad():
         pbar = tqdm(loader, desc=f"[{desc}]")
         for images, labels in pbar:
-            images, labels = images.to(cfg.device), labels.to(cfg.device)
+            images, labels = images.to(config["device"]), labels.to(config["device"])
 
             # Padding si nécessaire
-            if images.size(-1) != cfg.img_size:
-                pad = cfg.img_size - images.size(-1)
+            if images.size(-1) != config["img_size"]:
+                pad = config["img_size"] - images.size(-1)
                 images = F.pad(images, (0, pad, 0, pad), mode="constant", value=0)
 
             # Forward
-            with torch.amp.autocast(enabled=cfg.use_amp):
+            with torch.amp.autocast(enabled=config["use_amp"]):
                 outputs = model(images)
                 loss = criterion(outputs, labels)
 
