@@ -27,7 +27,8 @@ sys.path.append(os.path.join(project_root, "src"))
 from data.MSTAR.paper_AConvNet import preprocess # type: ignore
 from data.MSTAR.paper_AConvNet import loader # type: ignore
 from utils import common # type: ignore
-from models import AConvNet # type: ignore
+from models.AConvNet.network import AConvNet # type: ignore
+from models._base import Model
 
 DATA_PATH = 'datasets/MSTAR/MSTAR_IMG_JSON'
 
@@ -163,10 +164,19 @@ def run(epochs, dataset, classes, channels, batch_size,
     train_set, val_set = load_dataset(DATA_PATH, True, dataset, batch_size, augment=True)
     # test_set = load_dataset(DATA_PATH, False, dataset, batch_size)
 
-    m = AConvNet.Model(
-        classes=classes, dropout_rate=dropout_rate, channels=channels,
-        lr=lr, lr_step=lr_step, lr_decay=lr_decay,
-        weight_decay=weight_decay
+    net = AConvNet(
+        classes=classes,
+        channels=channels,
+        dropout_rate=dropout_rate
+    )
+
+    m = Model(
+        net=net,
+        lr=lr, 
+        lr_step=lr_step,
+        lr_decay=lr_decay,
+        weight_decay=weight_decay,
+        criterion=torch.nn.CrossEntropyLoss(),
     )
 
     model_path = os.path.join(experiments_path, f'{model_str}/models/{model_name}')
