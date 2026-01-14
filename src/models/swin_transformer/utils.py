@@ -261,7 +261,7 @@ def train_epoch(model, loader, criterion, optimizer, scheduler, scaler, config, 
 
 def validate(model, loader, criterion, config, desc="Val"):
     """Évalue le modèle"""
-    model.eval()
+    model.net.eval()
 
     losses = AverageMeter()
     accs = AverageMeter()
