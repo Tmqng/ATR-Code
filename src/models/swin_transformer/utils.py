@@ -64,7 +64,7 @@ def create_augmented_dataset(dataset, config):
     Returns:
         AugmentedDataset with all patches.
     """
-    logging(f" Extraction des patches (patch_size={config['patch_size']}, "
+    logging.info(f" Extraction des patches (patch_size={config['patch_size']}, "
           f"stride={config['stride']})...")
 
     augmented_samples = []
@@ -83,10 +83,10 @@ def create_augmented_dataset(dataset, config):
         for patch in all_patches:
             augmented_samples.append((patch, label))
 
-    logging("Finished extraction:")
-    logging(f"   Original images: {len(dataset)}")
-    logging(f"   Patches generated: {len(augmented_samples)}")
-    logging(f"   Augmentation factor: {len(augmented_samples) / len(dataset):.1f}x")
+    logging.info("Finished extraction:")
+    logging.info(f"   Original images: {len(dataset)}")
+    logging.info(f"   Patches generated: {len(augmented_samples)}")
+    logging.info(f"   Augmentation factor: {len(augmented_samples) / len(dataset):.1f}x")
 
     return AugmentedDataset(augmented_samples)
 
@@ -199,9 +199,9 @@ def validation(m, ds):
 
         # DEBUG: Check predictions
         if i == 0:
-            logging(f"Predicted classes: {predictions[:10]}")
-            logging(f"True labels: {labels[:10]}")
-            logging(f"Matches: {(predictions == labels)[:10]}")
+            logging.info(f"Predicted classes: {predictions[:10]}")
+            logging.info(f"True labels: {labels[:10]}")
+            logging.info(f"Matches: {(predictions == labels)[:10]}")
 
         labels = labels.type(torch.LongTensor)
         num_data += labels.size(0)
