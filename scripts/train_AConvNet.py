@@ -28,7 +28,7 @@ from data.MSTAR.paper_AConvNet import preprocess # type: ignore
 from data.MSTAR.paper_AConvNet import loader # type: ignore
 from utils import common # type: ignore
 from models.AConvNet.network import AConvNet # type: ignore
-from models._base import Model
+from models._base import Model # type: ignore
 
 DATA_PATH = 'datasets/MSTAR/MSTAR_IMG_JSON'
 
