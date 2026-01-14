@@ -64,7 +64,7 @@ def create_augmented_dataset(dataset, config):
     Returns:
         AugmentedDataset with all patches.
     """
-    logging(f"🔄 Extraction des patches (patch_size={config['patch_size']}, "
+    logging(f" Extraction des patches (patch_size={config['patch_size']}, "
           f"stride={config['stride']})...")
 
     augmented_samples = []
