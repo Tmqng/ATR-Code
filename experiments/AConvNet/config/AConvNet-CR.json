@@ -2,7 +2,7 @@
   "model_name": "AConvNet-CR",
   "dataset": "OUTLIER",
   "num_classes": 3,
-  "channels": 2,
+  "channels": 1,
   "batch_size": 100,
   "epochs": 100,
   "momentum": 0.9,
