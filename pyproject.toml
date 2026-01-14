@@ -6,13 +6,26 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "absl-py>=2.3.1",
+    "matplotlib>=3.10.8",
     "numpy>=2.4.0",
     "opencv-python>=4.11.0.86",
     "optuna>=4.7.0",
     "pillow>=12.1.0",
+    "ruff>=0.14.11",
     "scikit-image>=0.26.0",
+    "scikit-learn>=1.8.0",
+    "seaborn>=0.13.2",
     "tensorboard>=2.20.0",
+    "timm>=1.0.24",
     "torch>=2.9.1",
+    "torchinfo>=1.8.0",
     "torchvision>=0.24.1",
     "tqdm>=4.67.1",
 ]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+# Tu peux choisir tes règles ici (E = Error, F = Pyflakes, I = isort)
+select = ["E", "F", "I"]

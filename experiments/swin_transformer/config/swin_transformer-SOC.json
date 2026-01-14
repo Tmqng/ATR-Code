@@ -1,0 +1,30 @@
+{
+    "model_name": "swin_tiny_patch4_window7_224",
+    "img_size": 96,
+    "num_classes": 10,
+    "pretrained": false,
+
+    "patch_size": 94,
+    "stride": 1,
+    "chip_size": 100,
+
+    "batch_size": 32,
+    "epochs": 10,
+    "val_split": 0.2,
+
+    "lr": 1e-4,
+    "weight_decay": 0.05,
+    "warmup_epochs": 5,
+    "min_lr": 1e-6,
+
+    "dropout": 0.1,
+    "drop_path": 0.1  ,
+    "label_smoothing": 0.1,
+
+    "use_amp": true,
+    "num_workers": -1,
+    "pin_memory": true,
+    "print_freq": 100,
+    "save_freq": 5,
+    "seed": 42
+}
