@@ -58,7 +58,6 @@ def run(
     m = Model(
         net=net,
         lr=config["lr"],
-        lr_decay=config["lr_decay"],
         weight_decay=config["weight_decay"],
         optimizer=optimizer,
         criterion=criterion,
