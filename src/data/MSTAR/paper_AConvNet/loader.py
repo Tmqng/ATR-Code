@@ -46,8 +46,21 @@ class Dataset(torch.utils.data.Dataset):
     def _load_data(self, path):
         mode = 'train' if self.is_train else 'test'
 
-        image_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/*/*.png')) # original code used .npy
-        label_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/*/*.json'))
+        # has been modified from source paper
+
+        if self.name == 'OUTLIER':
+            if mode == 'train':
+                # only train with 'known' targets
+                image_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/*/known/*.png'))
+                label_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/*/known/*.json'))
+            else:
+                # include confuser in tests (inference)
+                image_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/*/*/*.png'))
+                label_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/*/*/*.json'))
+        else:
+            image_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/*/*.png')) # original code used .npy
+            label_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/*/*.json'))
+
         image_list = sorted(image_list, key=os.path.basename)
         label_list = sorted(label_list, key=os.path.basename)
 
