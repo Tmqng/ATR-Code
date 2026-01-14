@@ -51,8 +51,8 @@ class Dataset(torch.utils.data.Dataset):
         if self.name == 'OUTLIER':
             if mode == 'train':
                 # only train with 'known' targets
-                image_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/*/known/*.png'))
-                label_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/*/known/*.json'))
+                image_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/known/*/*.png'))
+                label_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/known/*/*.json'))
             else:
                 # include confuser in tests (inference)
                 image_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/*/*/*.png'))
