@@ -214,7 +214,7 @@ def validation(m, ds):
 
 def train_epoch(model, loader, criterion, optimizer, scheduler, scaler, cfg, epoch):
     """Entraîne le modèle pour une époque"""
-    model.train()
+    model.net.train()
 
     losses = AverageMeter()
     accs = AverageMeter()
@@ -229,8 +229,8 @@ def train_epoch(model, loader, criterion, optimizer, scheduler, scaler, cfg, epo
             images = F.pad(images, (0, pad, 0, pad), mode="constant", value=0)
 
         # Forward avec mixed precision
-        with torch.cuda.amp.autocast(enabled=cfg.use_amp):
-            outputs = model(images)
+        with torch.amp.autocast(enabled=cfg.use_amp):
+            outputs = model.net(images)
             loss = criterion(outputs, labels)
 
         # Backward

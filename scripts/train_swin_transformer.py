@@ -163,7 +163,7 @@ def run(
 
             checkpoint = {
                 "epoch": epoch + 1,
-                "model_state_dict": m.state_dict(),
+                "model_state_dict": m.net.state_dict(),
                 "optimizer_state_dict": optimizer.state_dict(),
                 "scheduler_state_dict": lr_scheduler.state_dict(),
                 "val_acc": val_acc,
