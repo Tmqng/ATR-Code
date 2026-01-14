@@ -221,7 +221,7 @@ def train_epoch(model, loader, criterion, optimizer, scheduler, scaler, config, 
 
     pbar = tqdm(loader, desc=f"Epoch {epoch + 1}/{config["epochs"]} [Train]")
     for batch_idx, (images, labels) in enumerate(pbar):
-        images, labels = images.to(config["device"]), labels.to(config["device"])
+        images, labels = images.to(model.device), labels.to(model.device)
 
         # Padding si nécessaire (94 -> 96)
         if images.size(-1) != config["img_size"]:
@@ -272,7 +272,7 @@ def validate(model, loader, criterion, config, desc="Val"):
     with torch.no_grad():
         pbar = tqdm(loader, desc=f"[{desc}]")
         for images, labels in pbar:
-            images, labels = images.to(config["device"]), labels.to(config["device"])
+            images, labels = images.to(model.device), labels.to(model.device)
 
             # Padding si nécessaire
             if images.size(-1) != config["img_size"]:
