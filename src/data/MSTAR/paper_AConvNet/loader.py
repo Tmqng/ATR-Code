@@ -54,7 +54,7 @@ class Dataset(torch.utils.data.Dataset):
                 image_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/known/*/*.png'))
                 label_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/known/*/*.json'))
             else:
-                # include confuser in tests (inference)
+                # include confuser classes in test (inference)
                 image_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/*/*/*.png'))
                 label_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/*/*/*.json'))
         else:

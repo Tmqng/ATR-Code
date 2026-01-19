@@ -144,11 +144,11 @@ def validation(m, ds):
 
         _, predictions = torch.max(predictions.data, 1)
 
-        # DEBUG: Check predictions
-        if i == 0:
-            print(f"Predicted classes: {predictions[:10]}")
-            print(f"True labels: {labels[:10]}")
-            print(f"Matches: {(predictions == labels)[:10]}")
+        # # DEBUG: Check predictions
+        # if i == 0:
+        #     print(f"Predicted classes: {predictions[:10]}")
+        #     print(f"True labels: {labels[:10]}")
+        #     print(f"Matches: {(predictions == labels)[:10]}")
 
         labels = labels.type(torch.LongTensor)
         num_data += labels.size(0)
