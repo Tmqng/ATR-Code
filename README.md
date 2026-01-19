@@ -72,7 +72,37 @@ uv run python_script.py
 ## Lancer une expérience
 
 Les scripts d’entraînement se trouvent dans le dossier scripts/
-Les datasets doivent être téléchargés dans le dossier datasets/. (ex : télécharger et décompresser le dataset suivant https://www.kaggle.com/datasets/minhqunnguyen/mstar-images-et-json)
+
+Les datasets doivent être téléchargés dans le dossier datasets/. Il est recommandé d'organiser les données de la manière suivante :
+```
+nom_du_dataset/
+├── train/
+│   ├── class_0/
+│   │   ├── sample_1.png (fichiers.png contiennent l'image)
+│   │   ├── sample_1.json (fichiers.json contiennent les métadonnées 'class_name', 'class_id' etc...)
+│   │   ├── sample_2.png
+│   │   └── sample_2.json
+│   ├── class_1/
+│   │   ├── sample_1.png
+│   │   └── sample_1.json
+│   └── class_2/
+│       ├── sample_1.png
+│       └── sample_1.json
+│
+└── test/
+    ├── class_0/
+    │   ├── sample_1.png
+    │   └── sample_1.json
+    ├── class_1/
+    │   ├── sample_1.png
+    │   └── sample_1.json
+    └── class_2/
+        ├── sample_1.png
+        └── sample_1.json
+```
+
+(ex : télécharger et décompresser le dataset suivant https://www.kaggle.com/datasets/minhqunnguyen/mstar-images-et-json)
+
 Les configurations d’expériences sont définies dans experiments/<model_name>/config/.
 
 #### Exemple : lancer un entraînement avec AConvNet
@@ -87,5 +117,6 @@ Selon la configuration :
 - les modèles entraînés sont sauvegardés dans experiments/AConvNet/models/
 
 ⚠️ Ces dossiers ne sont pas versionnés dans Git.
+
 
 
