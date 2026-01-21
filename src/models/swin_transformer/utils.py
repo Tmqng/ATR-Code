@@ -1,4 +1,3 @@
-
 from typing import Dict
 
 import torch
@@ -7,7 +6,6 @@ from absl import logging
 from torch.utils.data import DataLoader, Dataset, random_split
 from torchvision import datasets, transforms
 from tqdm import tqdm
-import numpy as np
 
 
 def extract_patches_from_tensor(image_tensor, patch_size, stride, chip_size):
@@ -41,6 +39,7 @@ def extract_patches_from_tensor(image_tensor, patch_size, stride, chip_size):
 
     return patches
 
+
 class AugmentedDataset(Dataset):
     """Dataset for the augmented patches."""
 
@@ -53,6 +52,7 @@ class AugmentedDataset(Dataset):
     def __getitem__(self, idx):
         return self.data[idx]
 
+
 def create_augmented_dataset(dataset, config):
     """
     Applies patch augmentation to a dataset.
@@ -64,8 +64,9 @@ def create_augmented_dataset(dataset, config):
     Returns:
         AugmentedDataset with all patches.
     """
-    logging.info(f" Extraction des patches (patch_size={config['patch_size']}, "
-          f"stride={config['stride']})...")
+    logging.info(
+        f" Extraction des patches (patch_size={config['patch_size']}, stride={config['stride']})..."
+    )
 
     augmented_samples = []
     temp_loader = DataLoader(dataset, batch_size=1, shuffle=False)
@@ -91,9 +92,7 @@ def create_augmented_dataset(dataset, config):
     return AugmentedDataset(augmented_samples)
 
 
-def load_dataset(
-    data_path: str, config: Dict = None
-) -> tuple[DataLoader, DataLoader]:
+def load_dataset(data_path: str, config: Dict = None) -> tuple[DataLoader, DataLoader]:
     """
     Load MSTAR data using native PyTorch tools for Swin Transformer.
 
@@ -120,7 +119,9 @@ def load_dataset(
         ]
     )
 
-    full_train_dataset = datasets.ImageFolder(root=data_path + "/train", transform=train_transform_base)
+    full_train_dataset = datasets.ImageFolder(
+        root=data_path + "/train", transform=train_transform_base
+    )
     test_dataset = datasets.ImageFolder(root=data_path + "/test", transform=test_transform)
 
     train_size = int((1 - config["val_split"]) * len(full_train_dataset))
@@ -168,9 +169,9 @@ def load_dataset(
 
 
 @torch.no_grad()
-def validation(m, ds):
+def validate(model, loader, criterion, config, epoch):
     """
-
+    Evaluate the model.
 
     Args:
         m (_type_): _description_
@@ -179,37 +180,35 @@ def validation(m, ds):
     Returns:
         _type_: _description_
     """
-    num_data = 0
-    corrects = 0
+    model.net.eval()
 
-    # Test loop
-    m.net.eval()
-    _softmax = torch.nn.Softmax(dim=1)
-    for i, data in enumerate(tqdm(ds)):
-        images, labels, _ = data
+    losses = AverageMeter()
+    accs = AverageMeter()
 
-        images = images.to(m.device)
-        labels = labels.to(m.device)
+    pbar = tqdm(loader, desc=f"Epoch {epoch + 1}/{config['epochs']} [Val]")
+    for images, labels in pbar:
+        images, labels = images.to(model.device), labels.to(model.device)
 
-        predictions = m.inference(images)
-        predictions = predictions.to(m.device)
-        predictions = _softmax(predictions)
+        # Padding si nécessaire (94 -> 96)
+        if images.size(-1) != config["img_size"]:
+            pad = config["img_size"] - images.size(-1)
+            images = F.pad(images, (0, pad, 0, pad), mode="constant", value=0)
 
-        _, predictions = torch.max(predictions.data, 1)
+        # Forward avec mixed precision
+        with torch.amp.autocast(device_type=model.device.type, enabled=config["use_amp"]):
+            outputs = model.net(images)
+            loss = criterion(outputs, labels)
 
-        # DEBUG: Check predictions
-        if i == 0:
-            logging.info(f"Predicted classes: {predictions[:10]}")
-            logging.info(f"True labels: {labels[:10]}")
-            logging.info(f"Matches: {(predictions == labels)[:10]}")
+            # Métriques
+            preds = outputs.argmax(1)
+            acc = (preds == labels).float().mean()
 
-        labels = labels.type(torch.LongTensor)
-        num_data += labels.size(0)
-        corrects += (predictions == labels.to(m.device)).sum().item()
+            losses.update(loss.item(), images.size(0))
+            accs.update(acc.item(), images.size(0))
 
-    accuracy = 100 * corrects / num_data
-    return accuracy
+            pbar.set_postfix({"loss": f"{losses.avg:.4f}", "acc": f"{accs.avg:.4f}"})
 
+    return losses.avg, accs.avg
 
 
 def train_epoch(model, loader, criterion, optimizer, scheduler, scaler, config, epoch):
@@ -219,7 +218,7 @@ def train_epoch(model, loader, criterion, optimizer, scheduler, scaler, config, 
     losses = AverageMeter()
     accs = AverageMeter()
 
-    pbar = tqdm(loader, desc=f"Epoch {epoch + 1}/{config["epochs"]} [Train]")
+    pbar = tqdm(loader, desc=f"Epoch {epoch + 1}/{config['epochs']} [Train]")
     for batch_idx, (images, labels) in enumerate(pbar):
         images, labels = images.to(model.device), labels.to(model.device)
 
@@ -257,46 +256,6 @@ def train_epoch(model, loader, criterion, optimizer, scheduler, scaler, config, 
         )
 
     return losses.avg, accs.avg
-
-
-def validate(model, loader, criterion, config, desc="Val"):
-    """Évalue le modèle"""
-    model.net.eval()
-
-    losses = AverageMeter()
-    accs = AverageMeter()
-
-    all_preds = []
-    all_labels = []
-
-    with torch.no_grad():
-        pbar = tqdm(loader, desc=f"[{desc}]")
-        for images, labels in pbar:
-            images, labels = images.to(model.device), labels.to(model.device)
-
-            # Padding si nécessaire
-            if images.size(-1) != config["img_size"]:
-                pad = config["img_size"] - images.size(-1)
-                images = F.pad(images, (0, pad, 0, pad), mode="constant", value=0)
-
-            # Forward
-            with torch.amp.autocast(enabled=config["use_amp"]):
-                outputs = model(images)
-                loss = criterion(outputs, labels)
-
-            # Métriques
-            preds = outputs.argmax(1)
-            acc = (preds == labels).float().mean()
-
-            losses.update(loss.item(), images.size(0))
-            accs.update(acc.item(), images.size(0))
-
-            all_preds.extend(preds.cpu().numpy())
-            all_labels.extend(labels.cpu().numpy())
-
-            pbar.set_postfix({"loss": f"{losses.avg:.4f}", "acc": f"{accs.avg:.4f}"})
-
-    return losses.avg, accs.avg, np.array(all_preds), np.array(all_labels)
 
 
 class AverageMeter:

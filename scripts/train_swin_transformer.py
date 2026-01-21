@@ -14,9 +14,8 @@ sys.path.append(os.path.join(project_root, "src"))
 
 from models._base import Model
 from models.swin_transformer.network import create_swin_model
-from models.swin_transformer.utils import load_dataset, validation
+from models.swin_transformer.utils import load_dataset, train_epoch, validate
 from utils import common
-from models.swin_transformer.utils import train_epoch, validate
 
 DATA_PATH = "/content/ATR-Code/datasets/MSTAR/MSTAR_IMG_JSON/SOC"
 model_str = "swin_transformer"
@@ -37,7 +36,7 @@ def run(
     optimizer = torch.optim.AdamW(
         net.parameters(), lr=config["lr"], weight_decay=config["weight_decay"], betas=(0.9, 0.999)
     )
-    criterion=torch.nn.CrossEntropyLoss(label_smoothing=config["label_smoothing"])
+    criterion = torch.nn.CrossEntropyLoss(label_smoothing=config["label_smoothing"])
 
     # Scheduler avec warmup
     num_steps = len(train_loader) * config["epochs"]
@@ -79,42 +78,6 @@ def run(
         "val_accuracy": [],
     }
 
-    # for epoch in range(config["epochs"]):
-    #     _loss = []
-
-    #     m.net.train()
-    #     for i, data in enumerate(tqdm(train_loader)):
-    #         images, labels, _ = data
-    #         images, labels = images.to(config["device"]), labels.to(config["device"])
-
-    #         _loss.append(m.optimize(images, labels))
-
-    #     if m.lr_scheduler:
-    #         lr = m.lr_scheduler.get_last_lr()[0]
-    #         m.lr_scheduler.step()
-
-    #     train_accuracy = validation(m, train_loader)
-    #     val_accuracy = validation(m, val_loader)
-
-    #     logging.info(
-    #         f"Epoch: {epoch + 1:03d}/{config['epochs']:03d} | loss={np.mean(_loss):.4f} | lr={lr} |"
-    #         f" Train accuracy={train_accuracy:.2f} | Validation accuracy={val_accuracy:.2f}"
-    #     )
-
-    #     history["train_loss"].append(np.mean(_loss))
-    #     history["train_accuracy"].append(train_accuracy)
-    #     history["val_accuracy"].append(val_accuracy)
-
-    #     if experiments_path:
-    #         m.save(os.path.join(model_path, f"model-{epoch + 1:03d}.pth"))
-
-    #     with open(
-    #         os.path.join(history_path, f"history-{config['model_name']}.json"),
-    #         mode="w",
-    #         encoding="utf-8",
-    #     ) as f:
-    #         json.dump(history, f, ensure_ascii=True, indent=2)
-
     # Historique
     history = {"train_loss": [], "train_acc": [], "val_loss": [], "val_acc": [], "lr": []}
 
@@ -134,7 +97,7 @@ def run(
         )
 
         # Validation
-        val_loss, val_acc, _, _ = validate(m, val_loader, criterion, config, "Val")
+        val_loss, val_acc = validate(m, val_loader, criterion, config, epoch)
 
         # Scheduler epoch step
         lr_scheduler.step(epoch + 1)
@@ -168,20 +131,21 @@ def run(
                 "scheduler_state_dict": lr_scheduler.state_dict(),
                 "val_acc": val_acc,
                 "val_loss": val_loss,
-                "config": vars(config),
+                "config": config,
             }
 
-            torch.save(checkpoint, os.path.join(config["save_dir"], "swin_best.pth"))
+            torch.save(checkpoint, os.path.join(model_path, "swin_best.pth"))
             logging.info(f"     Nouveau meilleur modèle sauvegardé! (Val Acc: {val_acc:.4f})")
 
         # Sauvegarde périodique
         if (epoch + 1) % config["save_freq"] == 0:
-            torch.save(checkpoint, os.path.join(config["save_dir"], f"swin_epoch_{epoch + 1}.pth"))
+            torch.save(checkpoint, os.path.join(model_path, f"swin_epoch_{epoch + 1}.pth"))
             logging.info(f"   Checkpoint sauvegardé (epoch {epoch + 1})")
 
     total_time = time.time() - start_time
     logging.info(f"\n  Entraînement terminé en {total_time / 60:.1f} minutes")
     logging.info(f"  Meilleure Val Acc: {best_val_acc:.4f} (epoch {best_epoch})")
+
 
 def main(_):
     logging.info("Start")
