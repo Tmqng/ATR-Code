@@ -105,9 +105,9 @@ def validation(m, ds):
 
         # DEBUG: Check predictions
         if i == 0:
-            print(f"Predicted classes: {predictions[:10]}")
-            print(f"True labels: {labels[:10]}")
-            print(f"Matches: {(predictions == labels)[:10]}")
+            logging.info(f"Predicted classes: {predictions[:10]}")
+            logging.info(f"True labels: {labels[:10]}")
+            logging.info(f"Matches: {(predictions == labels)[:10]}")
 
         labels = labels.type(torch.LongTensor)
         num_data += labels.size(0)
@@ -130,6 +130,7 @@ def run(
     dropout_rate,
     model_name,
     experiments_path=None,
+    debug=False,
 ):
     train_set, val_set = load_dataset(DATA_PATH, batch_size=batch_size)
     # test_set = load_dataset(DATA_PATH, False, dataset, batch_size)
@@ -167,6 +168,11 @@ def run(
         for i, data in enumerate(tqdm(train_set)):
             images, labels = data
             _loss.append(m.optimize(images, labels))
+
+            # DEBUG: Check predictions
+            if debug and i == 0:
+                logging.info(f"Labels: {labels[:10]}")
+                logging.info(f"Loss: {_loss[:10]}")
 
         if m.lr_scheduler:
             lr = m.lr_scheduler.get_last_lr()[0]
