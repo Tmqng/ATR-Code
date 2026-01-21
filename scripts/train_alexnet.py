@@ -56,7 +56,7 @@ def load_dataset(
         [
             transforms.Grayscale(num_output_channels=1),
             transforms.Resize(input_size),
-            transforms.ToTensor(),
+            # transforms.ToTensor(),
         ]
     )
 
