@@ -19,7 +19,7 @@ from utils import common
 
 
 DATA_PATH = os.path.join(project_root, "datasets/MSTAR/MSTAR_IMG_JSON")
-model_str = "AlexNet"
+model_str = "alexnet"
 flags.DEFINE_string(
     "experiments_path", os.path.join(common.project_root, "experiments"), help=""
 )
