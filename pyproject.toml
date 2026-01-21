@@ -8,6 +8,7 @@ dependencies = [
     "absl-py>=2.3.1",
     "numpy>=2.4.0",
     "opencv-python>=4.11.0.86",
+    "optuna>=4.7.0",
     "pillow>=12.1.0",
     "scikit-image>=0.26.0",
     "tensorboard>=2.20.0",

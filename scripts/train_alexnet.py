@@ -18,8 +18,8 @@ from models.alexnet.network import AlexNet
 from utils import common
 
 
-DATA_PATH = "datasets/MSTAR/MSTAR_IMG_JSON"
-model_str = "AlexNet"
+DATA_PATH = os.path.join(project_root, "datasets/MSTAR/MSTAR_IMG_JSON")
+model_str = "alexnet"
 flags.DEFINE_string(
     "experiments_path", os.path.join(common.project_root, "experiments"), help=""
 )
@@ -84,7 +84,7 @@ def load_dataset(
 
 
 @torch.no_grad()
-def validation(m, ds):
+def validation(m, ds, debug=False):
     num_data = 0
     corrects = 0
 
@@ -92,7 +92,7 @@ def validation(m, ds):
     m.net.eval()
     _softmax = torch.nn.Softmax(dim=1)
     for i, data in enumerate(tqdm(ds)):
-        images, labels, _ = data
+        images, labels = data
 
         images = images.to(m.device)
         labels = labels.to(m.device)
@@ -104,10 +104,10 @@ def validation(m, ds):
         _, predictions = torch.max(predictions.data, 1)
 
         # DEBUG: Check predictions
-        if i == 0:
-            print(f"Predicted classes: {predictions[:10]}")
-            print(f"True labels: {labels[:10]}")
-            print(f"Matches: {(predictions == labels)[:10]}")
+        if debug and i == 0:
+            logging.info(f"Predicted classes: {predictions[:10]}")
+            logging.info(f"True labels: {labels[:10]}")
+            logging.info(f"Matches: {(predictions == labels)[:10]}")
 
         labels = labels.type(torch.LongTensor)
         num_data += labels.size(0)
@@ -130,8 +130,11 @@ def run(
     dropout_rate,
     model_name,
     experiments_path=None,
+    debug=False,
 ):
-    train_set, val_set = load_dataset(DATA_PATH, batch_size=batch_size)
+    data_path = os.path.join(DATA_PATH, dataset)
+
+    train_set, val_set = load_dataset(data_path=data_path, batch_size=batch_size)
     # test_set = load_dataset(DATA_PATH, False, dataset, batch_size)
 
     net = AlexNet(classes=classes, dropout_rate=dropout_rate)
@@ -165,15 +168,24 @@ def run(
 
         m.net.train()
         for i, data in enumerate(tqdm(train_set)):
-            images, labels, _ = data
+            images, labels = data
+
+            images = images.to(m.device)
+            labels = labels.to(m.device)
+
             _loss.append(m.optimize(images, labels))
+
+            # DEBUG: Check predictions
+            if debug and i == 0:
+                logging.info(f"Labels: {labels[:10]}")
+                logging.info(f"Loss: {_loss[:10]}")
 
         if m.lr_scheduler:
             lr = m.lr_scheduler.get_last_lr()[0]
             m.lr_scheduler.step()
 
-        train_accuracy = validation(m, train_set)
-        val_accuracy = validation(m, val_set)
+        train_accuracy = validation(m, train_set, debug=debug)
+        val_accuracy = validation(m, val_set, debug=debug)
 
         logging.info(
             f"Epoch: {epoch + 1:03d}/{epochs:03d} | loss={np.mean(_loss):.4f} | lr={lr} | Train accuracy={train_accuracy:.2f} | Validation accuracy={val_accuracy:.2f}"

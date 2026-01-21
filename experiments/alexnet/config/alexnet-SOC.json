@@ -1,7 +1,7 @@
 {
-  "model_name": "alexnet-EOC-1",
-  "dataset": "EOC-1",
-  "num_classes": 4,
+  "model_name": "alexnet-SOC",
+  "dataset": "SOC",
+  "num_classes": 10,
   "channels": 1,
   "batch_size": 100,
   "epochs": 100,
