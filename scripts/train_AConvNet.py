@@ -30,7 +30,7 @@ from utils import common # type: ignore
 from models.AConvNet.network import AConvNet # type: ignore
 from models._base import Model
 
-DATA_PATH = 'datasets/MSTAR/MSTAR_IMG_JSON'
+DATA_PATH = os.path.join(project_root, 'datasets/MSTAR/MSTAR_IMG_JSON')
 
 # DATA_PATH = 'datasets/MSTAR/mstar_data_paper_AConvNet/'
 

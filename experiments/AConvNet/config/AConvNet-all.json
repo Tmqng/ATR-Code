@@ -1,0 +1,14 @@
+{
+  "model_name": "AConvNet-all",
+  "dataset": "all",
+  "num_classes": 10,
+  "channels": 1,
+  "batch_size": 100,
+  "epochs": 100,
+  "momentum": 0.9,
+  "lr": 1e-3,
+  "lr_step": [50],
+  "lr_decay": 0.1,
+  "weight_decay": 0,
+  "dropout_rate": 0.5
+}
