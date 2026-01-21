@@ -18,7 +18,7 @@ from models.alexnet.network import AlexNet
 from utils import common
 
 
-DATA_PATH = "datasets/MSTAR/MSTAR_IMG_JSON"
+DATA_PATH = os.path.join(project_root, "datasets/MSTAR/MSTAR_IMG_JSON")
 model_str = "AlexNet"
 flags.DEFINE_string(
     "experiments_path", os.path.join(common.project_root, "experiments"), help=""
@@ -92,7 +92,7 @@ def validation(m, ds):
     m.net.eval()
     _softmax = torch.nn.Softmax(dim=1)
     for i, data in enumerate(tqdm(ds)):
-        images, labels, _ = data
+        images, labels = data
 
         images = images.to(m.device)
         labels = labels.to(m.device)
@@ -165,7 +165,7 @@ def run(
 
         m.net.train()
         for i, data in enumerate(tqdm(train_set)):
-            images, labels, _ = data
+            images, labels = data
             _loss.append(m.optimize(images, labels))
 
         if m.lr_scheduler:
