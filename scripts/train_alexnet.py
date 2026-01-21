@@ -131,7 +131,7 @@ def validation(m, ds, debug=False):
     m.net.eval()
     _softmax = torch.nn.Softmax(dim=1)
     for i, data in enumerate(tqdm(ds)):
-        images, labels = data
+        images, labels, _ = data
 
         images = images.to(m.device)
         labels = labels.to(m.device)
@@ -208,7 +208,7 @@ def run(
 
         m.net.train()
         for i, data in enumerate(tqdm(train_set)):
-            images, labels = data
+            images, labels, _ = data
 
             images = images.to(m.device)
             labels = labels.to(m.device)
