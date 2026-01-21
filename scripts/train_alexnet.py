@@ -132,7 +132,9 @@ def run(
     experiments_path=None,
     debug=False,
 ):
-    train_set, val_set = load_dataset(DATA_PATH, batch_size=batch_size)
+    data_path = os.path.join(DATA_PATH, dataset)
+
+    train_set, val_set = load_dataset(data_path=data_path, batch_size=batch_size)
     # test_set = load_dataset(DATA_PATH, False, dataset, batch_size)
 
     net = AlexNet(classes=classes, dropout_rate=dropout_rate)
@@ -167,6 +169,10 @@ def run(
         m.net.train()
         for i, data in enumerate(tqdm(train_set)):
             images, labels = data
+
+            images = images.to(m.device)
+            labels = labels.to(m.device)
+
             _loss.append(m.optimize(images, labels))
 
             # DEBUG: Check predictions
