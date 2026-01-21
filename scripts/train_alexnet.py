@@ -84,7 +84,7 @@ def load_dataset(
 
 
 @torch.no_grad()
-def validation(m, ds):
+def validation(m, ds, debug=False):
     num_data = 0
     corrects = 0
 
@@ -104,7 +104,7 @@ def validation(m, ds):
         _, predictions = torch.max(predictions.data, 1)
 
         # DEBUG: Check predictions
-        if i == 0:
+        if debug and i == 0:
             logging.info(f"Predicted classes: {predictions[:10]}")
             logging.info(f"True labels: {labels[:10]}")
             logging.info(f"Matches: {(predictions == labels)[:10]}")
@@ -184,8 +184,8 @@ def run(
             lr = m.lr_scheduler.get_last_lr()[0]
             m.lr_scheduler.step()
 
-        train_accuracy = validation(m, train_set)
-        val_accuracy = validation(m, val_set)
+        train_accuracy = validation(m, train_set, debug=debug)
+        val_accuracy = validation(m, val_set, debug=debug)
 
         logging.info(
             f"Epoch: {epoch + 1:03d}/{epochs:03d} | loss={np.mean(_loss):.4f} | lr={lr} | Train accuracy={train_accuracy:.2f} | Validation accuracy={val_accuracy:.2f}"
