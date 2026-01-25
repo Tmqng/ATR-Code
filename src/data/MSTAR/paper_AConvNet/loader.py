@@ -74,6 +74,7 @@ class Dataset(torch.utils.data.Dataset):
         data_pairs = list(zip(image_list, label_list))
 
         if proportion is not None:
+            logging.ingo(f"Applying proportion {proportion} to dataset '{self.name}' in mode '{mode}'")
             from collections import defaultdict
             class_map = defaultdict(list)
 
@@ -87,6 +88,7 @@ class Dataset(torch.utils.data.Dataset):
             for class_name, pairs in class_map.items():
                 selected_count = max(1, int(len(pairs) * proportion))
                 selected_pairs.extend(random.sample(pairs, selected_count))
+                logging.info(f"Class '{class_name}': selected {selected_count} out of {len(pairs)} samples.")
 
             data_pairs = selected_pairs
 
