@@ -76,6 +76,7 @@ class Dataset(torch.utils.data.Dataset):
         data_pairs = list(zip(image_list, label_list))
 
         if proportion is not None:
+            logging.info(f"Proportionning dataset from path: {path}")
             logging.info(f"Applying proportion {proportion} to dataset '{self.name}' in mode '{mode}'")
             from collections import defaultdict
             class_map = defaultdict(list)
