@@ -9,6 +9,8 @@ import numpy as np
 import torch
 import tqdm
 
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+
 # import utils.common as common
 project_root = os.path.abspath(
     os.path.dirname(
@@ -74,7 +76,7 @@ class Dataset(torch.utils.data.Dataset):
         data_pairs = list(zip(image_list, label_list))
 
         if proportion is not None:
-            logging.ingo(f"Applying proportion {proportion} to dataset '{self.name}' in mode '{mode}'")
+            logging.info(f"Applying proportion {proportion} to dataset '{self.name}' in mode '{mode}'")
             from collections import defaultdict
             class_map = defaultdict(list)
 
