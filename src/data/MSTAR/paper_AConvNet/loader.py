@@ -67,15 +67,30 @@ class Dataset(torch.utils.data.Dataset):
             image_list = glob.glob(search_path_img, recursive=True)
             label_list = glob.glob(search_path_json, recursive=True)
 
-        if proportion is not None:
-            total_count = len(label_list)
-            selected_count = int(total_count * proportion)
-            image_list = random.sample(image_list, selected_count)
-            label_list = random.sample(label_list, selected_count)
-
-        # Important : trier pour garantir la correspondance image/label
+        # On trie d'abord pour garantir la correspondance
         image_list.sort()
         label_list.sort()
+
+        data_pairs = list(zip(image_list, label_list))
+
+        if proportion is not None:
+            from collections import defaultdict
+            class_map = defaultdict(list)
+
+            for img_p, lbl_p in data_pairs:
+                # On utilise le nom du dossier parent comme ID de classe pour le sampling
+                # Exemple: 'datasets/.../SOC/train/T72/img_01.png' -> class_folder = 'T72'
+                class_folder = os.path.basename(os.path.dirname(img_p))
+                class_map[class_folder].append((img_p, lbl_p))
+
+            selected_pairs = []
+            for class_name, pairs in class_map.items():
+                selected_count = max(1, int(len(pairs) * proportion))
+                selected_pairs.extend(random.sample(pairs, selected_count))
+
+            data_pairs = selected_pairs
+
+        image_list, label_list = zip(*data_pairs) if data_pairs else ([], [])
 
         image_list = sorted(image_list, key=os.path.basename)
         label_list = sorted(label_list, key=os.path.basename)
