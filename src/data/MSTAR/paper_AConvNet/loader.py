@@ -85,6 +85,8 @@ class Dataset(torch.utils.data.Dataset):
                 # Exemple: 'datasets/.../SOC/train/T72/img_01.png' -> class_folder = 'T72'
                 class_folder = os.path.basename(os.path.dirname(img_p))
                 class_map[class_folder].append((img_p, lbl_p))
+            logging.info("Class distribution before proportioning: " +
+                         ", ".join([f"'{k}': {len(v)}" for k, v in class_map.items()]))
 
             selected_pairs = []
             for class_name, pairs in class_map.items():
