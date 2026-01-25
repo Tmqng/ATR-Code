@@ -2,6 +2,7 @@ import glob
 import json
 import logging
 import os
+import random
 
 import cv2
 import numpy as np
@@ -17,14 +18,15 @@ project_root = os.path.abspath(
 
 
 class Dataset(torch.utils.data.Dataset):
-    def __init__(self, path, name="SOC", is_train=False, transform=None):
+    def __init__(self, path, name="SOC", is_train=False, transform=None, proportion=None):
         self.is_train = is_train
         self.name = name
+        self.proportion = proportion
         self.images = []
         self.labels = []
         self.serial_number = []
         self.transform = transform
-        self._load_data(path)
+        self._load_data(path, proportion=self.proportion)
 
     def __len__(self):
         return len(self.labels)
@@ -42,7 +44,7 @@ class Dataset(torch.utils.data.Dataset):
 
         return _image, _label, _serial_number
 
-    def _load_data(self, path):
+    def _load_data(self, path, proportion=None):
         mode = 'train' if self.is_train else 'test'
 
         # has been modified from source paper
@@ -64,6 +66,12 @@ class Dataset(torch.utils.data.Dataset):
 
             image_list = glob.glob(search_path_img, recursive=True)
             label_list = glob.glob(search_path_json, recursive=True)
+
+        if proportion is not None:
+            total_count = len(label_list)
+            selected_count = int(total_count * proportion)
+            image_list = random.sample(image_list, selected_count)
+            label_list = random.sample(label_list, selected_count)
 
         # Important : trier pour garantir la correspondance image/label
         image_list.sort()

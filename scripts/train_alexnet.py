@@ -37,7 +37,7 @@ common.set_random_seed(42)
 
 
 def load_dataset(
-    data_path: str, name: str, is_train: bool, batch_size: int = 32, train_split: float = 0.8, augment: bool = True
+    data_path: str, name: str, is_train: bool, batch_size: int = 32, proportion: float = None, augment: bool = True
 ) -> tuple[DataLoader, DataLoader]:
     """
     Load MSTAR data using native PyTorch tools for AlexNet.
@@ -64,7 +64,7 @@ def load_dataset(
     # full_dataset = datasets.ImageFolder(root=data_path, transform=shared_transforms)
     full_dataset = loader.Dataset(
         data_path, name=name, is_train=is_train,
-        transform=None
+        transform=None, proportion=proportion
     )
 
     if is_train:
@@ -168,13 +168,14 @@ def run(
     weight_decay,
     dropout_rate,
     model_name,
+    proportion=None,
     experiments_path=None,
     debug=False,
 ):
     # data_path = os.path.join(DATA_PATH, dataset)
     data_path = DATA_PATH
 
-    train_set, val_set = load_dataset(data_path=data_path, batch_size=batch_size, is_train=True, name=dataset)
+    train_set, val_set = load_dataset(data_path=data_path, batch_size=batch_size, is_train=True, name=dataset, proportion=proportion)
     # test_set = load_dataset(DATA_PATH, False, dataset, batch_size)
 
     net = AlexNet(classes=classes, dropout_rate=dropout_rate)
@@ -258,6 +259,7 @@ def main(_):
     channels = config["channels"]
     epochs = config["epochs"]
     batch_size = config["batch_size"]
+    proportion = config.get("proportion", None)
 
     lr = config["lr"]
     lr_step = config["lr_step"]
@@ -280,6 +282,7 @@ def main(_):
         weight_decay,
         dropout_rate,
         model_name,
+        proportion,
         experiments_path,
     )
 
