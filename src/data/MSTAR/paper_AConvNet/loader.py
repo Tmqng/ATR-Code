@@ -2,11 +2,14 @@ import glob
 import json
 import logging
 import os
+import random
 
 import cv2
 import numpy as np
 import torch
 import tqdm
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
 # import utils.common as common
 project_root = os.path.abspath(
@@ -17,14 +20,15 @@ project_root = os.path.abspath(
 
 
 class Dataset(torch.utils.data.Dataset):
-    def __init__(self, path, name="SOC", is_train=False, transform=None):
+    def __init__(self, path, name="SOC", is_train=False, transform=None, proportion=None):
         self.is_train = is_train
         self.name = name
+        self.proportion = proportion
         self.images = []
         self.labels = []
         self.serial_number = []
         self.transform = transform
-        self._load_data(path)
+        self._load_data(path, proportion=self.proportion)
 
     def __len__(self):
         return len(self.labels)
@@ -42,7 +46,7 @@ class Dataset(torch.utils.data.Dataset):
 
         return _image, _label, _serial_number
 
-    def _load_data(self, path):
+    def _load_data(self, path, proportion=None):
         mode = 'train' if self.is_train else 'test'
 
         # has been modified from source paper
@@ -65,9 +69,35 @@ class Dataset(torch.utils.data.Dataset):
             image_list = glob.glob(search_path_img, recursive=True)
             label_list = glob.glob(search_path_json, recursive=True)
 
-        # Important : trier pour garantir la correspondance image/label
+        # On trie d'abord pour garantir la correspondance
         image_list.sort()
         label_list.sort()
+
+        data_pairs = list(zip(image_list, label_list))
+
+        if proportion is not None:
+            logging.info(f"Proportionning dataset from path: {path}")
+            logging.info(f"Applying proportion {proportion} to dataset '{self.name}' in mode '{mode}'")
+            from collections import defaultdict
+            class_map = defaultdict(list)
+
+            for img_p, lbl_p in data_pairs:
+                # On utilise le nom du dossier parent comme ID de classe pour le sampling
+                # Exemple: 'datasets/.../SOC/train/T72/img_01.png' -> class_folder = 'T72'
+                class_folder = os.path.basename(os.path.dirname(img_p))
+                class_map[class_folder].append((img_p, lbl_p))
+            logging.info("Class distribution before proportioning: " +
+                         ", ".join([f"'{k}': {len(v)}" for k, v in class_map.items()]))
+
+            selected_pairs = []
+            for class_name, pairs in class_map.items():
+                selected_count = max(1, int(len(pairs) * proportion))
+                selected_pairs.extend(random.sample(pairs, selected_count))
+                logging.info(f"Class '{class_name}': selected {selected_count} out of {len(pairs)} samples.")
+
+            data_pairs = selected_pairs
+
+        image_list, label_list = zip(*data_pairs) if data_pairs else ([], [])
 
         image_list = sorted(image_list, key=os.path.basename)
         label_list = sorted(label_list, key=os.path.basename)
