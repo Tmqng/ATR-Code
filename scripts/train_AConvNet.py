@@ -56,8 +56,8 @@ def load_dataset(path, is_train, name, batch_size, augment, proportion):
     Load train, val or test dataset and apply transformations.
     """
 
-    val_transform = torchvision.transforms.Compose([preprocess.CenterCrop(94)])
-    train_transform = torchvision.transforms.Compose([preprocess.RandomCrop(94)])
+    val_transform = torchvision.transforms.Compose([preprocess.CenterCrop(94), torchvision.transforms.Lambda(lambda x: x / 255.0)])
+    train_transform = torchvision.transforms.Compose([preprocess.RandomCrop(94), torchvision.transforms.Lambda(lambda x: x / 255.0)])
 
     _dataset = loader.Dataset(
         path, name=name, is_train=is_train,
@@ -207,8 +207,8 @@ def run(epochs, dataset, classes, channels, batch_size,
             lr = m.lr_scheduler.get_last_lr()[0]
             m.lr_scheduler.step()
 
-        train_accuracy = validation(m, train_set)
-        val_accuracy = validation(m, val_set)
+        train_accuracy = validation(m, train_set, debug=debug)
+        val_accuracy = validation(m, val_set, debug=debug)
 
         logging.info(
             f'Epoch: {epoch + 1:03d}/{epochs:03d} | loss={np.mean(_loss):.4f} | lr={lr} | Train accuracy={train_accuracy:.2f} | Validation accuracy={val_accuracy:.2f}'
@@ -231,6 +231,7 @@ def main(_):
     config_name = FLAGS.config_name
 
     config = common.load_config(os.path.join(experiments_path, config_name))
+    logging.info(config)
 
     dataset = config['dataset']
     classes = config['num_classes']
