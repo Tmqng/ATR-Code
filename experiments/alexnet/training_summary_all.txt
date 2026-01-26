@@ -1,0 +1,17 @@
+======================================================================
+RÉSUMÉ DE L'ENTRAÎNEMENT
+======================================================================
+
+ MÉTRIQUES FINALES :
+   Train Accuracy      : 83.8980 (8389.80%)
+   Validation Accuracy : 80.3046 (8030.46%)
+   Train Loss          : 0.253178
+
+ MEILLEURS RÉSULTATS:
+   Meilleure Val Accuracy : 82.5726 (8257.26%) à l'epoch 12
+
+ CONVERGENCE:
+   Epoch 1 → Epoch finale:
+   - Train Accuracy: 69.6268 → 83.8980
+   - Val Accuracy  : 69.1437 → 80.3046
+======================================================================
