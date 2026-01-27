@@ -61,6 +61,7 @@ class Dataset(torch.utils.data.Dataset):
                 image_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/*/*/*.png'))
                 label_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/*/*/*.json'))
         else:
+            ## ! This creates train and test datasets with different distributions (can be a good robustness test)
             folder_pattern = "*" if self.name == "all" else self.name
 
             search_path_img = os.path.join(path, folder_pattern, mode, "**/*.png")

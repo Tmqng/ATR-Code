@@ -984,39 +984,39 @@ def main():
     print("3. Process the first 500 files")
     print("4. Process ALL files")
     
-    # choice = input("Enter your option (1-4): ").strip()
+    choice = input("Enter your option (1-4): ").strip()
     
-    # if choice == '1':
-    #     success = test_single_file()
-    #     if success:
-    #         print("\nTest successful")
-    #     else:
-    #         print("\nTest failed.")
+    if choice == '1':
+        success = test_single_file()
+        if success:
+            print("\nTest successful")
+        else:
+            print("\nTest failed.")
     
-    # elif choice == '2':
-    #     print("\nProcessing the first 50 files...")
-    #     success = process_all_files(max_files=50)
-    #     if success:
-    #         print("\nProcessing successful")
+    elif choice == '2':
+        print("\nProcessing the first 50 files...")
+        success = process_all_files(max_files=50)
+        if success:
+            print("\nProcessing successful")
         
-    # elif choice == '3':
-    #     print("\nProcessing the first 500 files...")
-    #     success = process_all_files(max_files=500)
-    #     if success:
-    #         print("\nProcessing successful")
+    elif choice == '3':
+        print("\nProcessing the first 500 files...")
+        success = process_all_files(max_files=500)
+        if success:
+            print("\nProcessing successful")
     
-    # elif choice == '4':
-    #     confirm = input("Are you sure you want to process ALL files? (y/N): ").strip().lower()
-    #     if confirm == 'y':
-    #         print("\nProcessing ALL files...")
-    #         success = process_all_files()
-    #         if success:
-    #             print("\nComplete processing successful")
-    #     else:
-    #         print("Operation cancelled.")
+    elif choice == '4':
+        confirm = input("Are you sure you want to process ALL files? (y/N): ").strip().lower()
+        if confirm == 'y':
+            print("\nProcessing ALL files...")
+            success = process_all_files()
+            if success:
+                print("\nComplete processing successful")
+        else:
+            print("Operation cancelled.")
     
-    # else:
-    #     print("Invalid option.")
+    else:
+        print("Invalid option.")
 
     create_mixed_dataset()
 
