@@ -44,7 +44,7 @@ FLAGS = flags.FLAGS
 
 common.set_random_seed(12321)
 
-def load_dataset(path, is_train, name, batch_size, augment):
+def load_dataset(path, is_train, name, batch_size, augment, proportion):
     """
     Docstring for load_dataset
     
@@ -56,12 +56,12 @@ def load_dataset(path, is_train, name, batch_size, augment):
     Load train, val or test dataset and apply transformations.
     """
 
-    val_transform = torchvision.transforms.Compose([preprocess.CenterCrop(94)])
-    train_transform = torchvision.transforms.Compose([preprocess.RandomCrop(94)])
+    val_transform = torchvision.transforms.Compose([preprocess.CenterCrop(94), torchvision.transforms.Lambda(lambda x: x / 255.0)])
+    train_transform = torchvision.transforms.Compose([preprocess.RandomCrop(94), torchvision.transforms.Lambda(lambda x: x / 255.0)])
 
     _dataset = loader.Dataset(
         path, name=name, is_train=is_train,
-        transform=None
+        transform=None, proportion=proportion
     )
 
     if is_train:
@@ -125,7 +125,7 @@ def load_dataset(path, is_train, name, batch_size, augment):
 
 
 @torch.no_grad()
-def validation(m, ds):
+def validation(m, ds, debug=False):
     num_data = 0
     corrects = 0
 
@@ -144,11 +144,11 @@ def validation(m, ds):
 
         _, predictions = torch.max(predictions.data, 1)
 
-        # # DEBUG: Check predictions
-        # if i == 0:
-        #     print(f"Predicted classes: {predictions[:10]}")
-        #     print(f"True labels: {labels[:10]}")
-        #     print(f"Matches: {(predictions == labels)[:10]}")
+        # DEBUG: Check predictions
+        if debug and i == 0:
+            logging.info(f"Predicted classes: {predictions[:10]}")
+            logging.info(f"True labels: {labels[:10]}")
+            logging.info(f"Matches: {(predictions == labels)[:10]}")
 
         labels = labels.type(torch.LongTensor)
         num_data += labels.size(0)
@@ -160,8 +160,9 @@ def validation(m, ds):
 
 def run(epochs, dataset, classes, channels, batch_size,
         lr, lr_step, lr_decay, weight_decay, dropout_rate,
-        model_name, experiments_path=None):
-    train_set, val_set = load_dataset(DATA_PATH, True, dataset, batch_size, augment=True)
+        model_name, proportion=None, experiments_path=None, debug=False):
+    
+    train_set, val_set = load_dataset(DATA_PATH, True, dataset, batch_size, augment=True, proportion=proportion)
     # test_set = load_dataset(DATA_PATH, False, dataset, batch_size)
 
     net = AConvNet(
@@ -206,8 +207,8 @@ def run(epochs, dataset, classes, channels, batch_size,
             lr = m.lr_scheduler.get_last_lr()[0]
             m.lr_scheduler.step()
 
-        train_accuracy = validation(m, train_set)
-        val_accuracy = validation(m, val_set)
+        train_accuracy = validation(m, train_set, debug=debug)
+        val_accuracy = validation(m, val_set, debug=debug)
 
         logging.info(
             f'Epoch: {epoch + 1:03d}/{epochs:03d} | loss={np.mean(_loss):.4f} | lr={lr} | Train accuracy={train_accuracy:.2f} | Validation accuracy={val_accuracy:.2f}'
@@ -230,12 +231,14 @@ def main(_):
     config_name = FLAGS.config_name
 
     config = common.load_config(os.path.join(experiments_path, config_name))
+    logging.info(config)
 
     dataset = config['dataset']
     classes = config['num_classes']
     channels = config['channels']
     epochs = config['epochs']
     batch_size = config['batch_size']
+    proportion = config.get("proportion", None)
 
     lr = config['lr']
     lr_step = config['lr_step']
@@ -248,7 +251,7 @@ def main(_):
 
     run(epochs, dataset, classes, channels, batch_size,
         lr, lr_step, lr_decay, weight_decay, dropout_rate,
-        model_name, experiments_path)
+        model_name, proportion, experiments_path)
 
     logging.info('Finish')
 

@@ -1,6 +1,6 @@
 {
-  "model_name": "AConvNet-all",
-  "dataset": "all",
+  "model_name": "AConvNet-MIXED",
+  "dataset": "MIXED",
   "num_classes": 10,
   "channels": 1,
   "batch_size": 100,

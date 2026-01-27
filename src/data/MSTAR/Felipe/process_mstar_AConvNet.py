@@ -7,6 +7,8 @@ import shutil
 import warnings
 from pathlib import Path
 import time
+import glob
+import random
 
 # MSTAR Data Processing - V2 for AConvNet-pytorch compatibility
 # This version organizes data according to the structure expected by:
@@ -868,6 +870,102 @@ def test_single_file():
     else:
         print("Could not determine any partition for this file.")
         return False
+    
+def create_mixed_dataset(train_proportion = 0.7):
+    """
+    Go through all data created and add to MIXED dataset
+    """
+
+    MIXED_DIR = os.path.join(OUTPUT_DIR, 'MIXED')
+
+    if os.path.exists(MIXED_DIR):
+        print(f"Cleaning existing MIXED data directory...")
+        shutil.rmtree(MIXED_DIR)
+
+    # Create MIXED/test and MIXED/train/ folders
+    for split in ['train', 'test']:
+        for class_name in SOC_TRAIN_SERIALS.keys():
+            os.makedirs(os.path.join(MIXED_DIR, split, class_name), exist_ok=True)
+
+    for root, dirs, files in os.walk(OUTPUT_DIR):
+
+        if 'OUTLIER' in root or 'MIXED' in root:
+            continue
+
+        # if we are in a folder containing files
+        if files:
+
+            class_name = os.path.basename(root)
+            split = os.path.basename(os.path.dirname(root))
+            dataset = os.path.basename(os.path.dirname(os.path.dirname(root)))
+            print(f'Processing {dataset}/{split}/{class_name} ...')
+
+            # read files in current folder
+            image_list = glob.glob(os.path.join(root, "*.png"))
+            label_list = glob.glob(os.path.join(root, "*.json"))
+
+            image_list.sort()
+            label_list.sort()
+
+            # check lengths
+            assert len(image_list) == len(label_list), "Mismatch between images and labels"
+
+            # Create (image, label) pairs
+            pairs = list(zip(image_list, label_list))
+
+            # Calculate train_size
+            train_size = int(len(pairs) * train_proportion)
+
+            # Randomly select
+            random.seed(42)
+            random.shuffle(pairs)  
+            train_pairs = pairs[:train_size]
+            test_pairs = pairs[train_size:]
+
+            train_count = 0
+            test_count = 0
+
+            # Copy train files
+            for img_path, lbl_path in train_pairs:
+                img_filename = os.path.basename(img_path)
+                lbl_filename = os.path.basename(lbl_path)
+                
+                dest_img = os.path.join(MIXED_DIR, 'train', class_name, img_filename)
+                dest_lbl = os.path.join(MIXED_DIR, 'train', class_name, lbl_filename)
+                
+                shutil.copy(img_path, dest_img)
+                shutil.copy(lbl_path, dest_lbl)
+                train_count += 1
+            
+            print(f'Loaded {train_count} images in train')
+            
+            # Copy test files
+            for img_path, lbl_path in test_pairs:
+                img_filename = os.path.basename(img_path)
+                lbl_filename = os.path.basename(lbl_path)
+                
+                dest_img = os.path.join(MIXED_DIR, 'test', class_name, img_filename)
+                dest_lbl = os.path.join(MIXED_DIR, 'test', class_name, lbl_filename)
+                
+                shutil.copy(img_path, dest_img)
+                shutil.copy(lbl_path, dest_lbl)
+
+                test_count += 1
+            
+            print(f'Loaded {test_count} images in test')
+
+    
+    # Print statistics
+    for split in ['train', 'test']:
+        split_path = os.path.join(MIXED_DIR, split)
+        print(f"\n{split.upper()} set:")
+        for class_name in os.listdir(split_path):
+            class_path = os.path.join(split_path, class_name)
+            if os.path.isdir(class_path):
+                num_images = len(glob.glob(os.path.join(class_path, "*.png")))
+                num_labels = len(glob.glob(os.path.join(class_path, "*.json")))
+                print(f"  {class_name}: {num_images} images and {num_labels} labels")
+
 
 def main():
     """
@@ -919,6 +1017,8 @@ def main():
     
     else:
         print("Invalid option.")
+
+    create_mixed_dataset()
 
 if __name__ == "__main__":
     main()
