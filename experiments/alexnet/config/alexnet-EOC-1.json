@@ -3,14 +3,14 @@
   "dataset": "EOC-1",
   "num_classes": 4,
   "channels": 1,
-  "batch_size": 100,
-  "epochs": 100,
+  "batch_size": 64,
+  "epochs": 20,
   "momentum": 0.9,
   "lr": 1e-3,
   "lr_step": [
-    50
+    15, 30
   ],
   "lr_decay": 0.1,
-  "weight_decay": 0,
+  "weight_decay": 5e-4,
   "dropout_rate": 0.5
 }
