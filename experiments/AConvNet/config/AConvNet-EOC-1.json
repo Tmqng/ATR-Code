@@ -1,5 +1,5 @@
 {
-  "model_name": "AConvNet-EOC-1",
+  "experience_name": "AConvNet-EOC-1",
   "dataset": "EOC-1",
   "num_classes": 4,
   "channels": 1,
