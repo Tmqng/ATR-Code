@@ -4,7 +4,7 @@ from . import preprocess
 import torch
 from torch.utils.data import DataLoader, random_split
 
-def load_dataset(path, is_train, transform, name, batch_size, augment, proportion):
+def load_dataset(data_path, is_train, transform, name, batch_size, augment, proportion):
     """
     Docstring for load_dataset
     
@@ -19,7 +19,7 @@ def load_dataset(path, is_train, transform, name, batch_size, augment, proportio
 
     # Load Dataset from files
     _dataset = dataset.Dataset(
-        path,
+        data_path,
         name=name, 
         is_train=is_train,
         proportion=proportion
