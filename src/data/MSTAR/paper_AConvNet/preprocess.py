@@ -1,6 +1,7 @@
 import numpy as np
 import tqdm
 
+import torch
 import torch.nn.functional as F
 
 from skimage import transform
@@ -18,9 +19,13 @@ class ToTensor(object):
         _input = sample
 
         if len(_input.shape) < 3:
-            _input = np.expand_dims(_input, axis=2)
+            _input = _input.unsqueeze(0)
 
-        _input = _input.transpose((2, 0, 1))
+        # Normalize to [0, 1] range if not already normalized
+        if _input.dtype != torch.float32:
+            _input = _input.float()
+        if _input.max() > 1.0:  # Assuming values are in [0, 255] range
+            _input = _input / 255.0
 
         return _input
 
