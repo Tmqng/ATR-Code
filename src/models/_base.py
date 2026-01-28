@@ -11,7 +11,7 @@ class Model(object):
         self.net = params.get(
             "net",
             network.AConvNet(
-                classes=params.get("classes", 10),
+                classes=params.get("num_classes", 10),
                 channels=params.get("channels", 1),
                 dropout_rate=params.get("dropout_rate", 0.5),
             ),

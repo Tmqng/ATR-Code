@@ -5,7 +5,7 @@ import torch.nn as nn
 class AlexNet(nn.Module):
     def __init__(self, classes=10, dropout_rate=0.5):
         super(AlexNet, self).__init__()
-        self.model_str = "AlexNet"
+        self.model_str = "alexnet"
 
         # Feature Extractor
         self.features = nn.Sequential(

@@ -1,0 +1,15 @@
+{
+  "model_name": "alexnet-all",
+  "dataset": "all",
+  "num_classes": 10,
+  "channels": 1,
+  "batch_size": 128,
+  "epochs": 25,
+  "momentum": 0.9,
+  "lr": 1e-4, 
+  "lr_step": [15, 20, 90],
+  "lr_decay": 0.1,
+  "weight_decay": 5e-4,
+  "dropout_rate": 0.5,
+  "proportion": 0.3
+}

@@ -16,10 +16,12 @@ sys.path.append(os.path.join(project_root, "src"))
 from models._base import Model
 from models.alexnet.network import AlexNet
 from utils import common
+from data.MSTAR.paper_AConvNet import preprocess
+from data.MSTAR.paper_AConvNet import loader
 
 
-DATA_PATH = "datasets/MSTAR/MSTAR_IMG_JSON"
-model_str = "AlexNet"
+DATA_PATH = os.path.join(project_root, "datasets/MSTAR/MSTAR_IMG_JSON")
+model_str = "alexnet"
 flags.DEFINE_string(
     "experiments_path", os.path.join(common.project_root, "experiments"), help=""
 )
@@ -35,7 +37,7 @@ common.set_random_seed(42)
 
 
 def load_dataset(
-    data_path: str, batch_size: int = 32, train_split: float = 0.8
+    data_path: str, name: str, is_train: bool, batch_size: int = 32, proportion: float = None, augment: bool = True
 ) -> tuple[DataLoader, DataLoader]:
     """
     Load MSTAR data using native PyTorch tools for AlexNet.
@@ -54,37 +56,74 @@ def load_dataset(
         [
             transforms.Grayscale(num_output_channels=1),
             transforms.Resize(input_size),
-            transforms.ToTensor(),
+            # transforms.ToTensor(),
         ]
     )
 
     # Load the entire training directory
-    full_dataset = datasets.ImageFolder(root=data_path, transform=shared_transforms)
-
-    # Calculate split lengths
-    train_count = int(train_split * len(full_dataset))
-    val_count = len(full_dataset) - train_count
-
-    # Deterministic split
-    train_subset, val_subset = random_split(
-        full_dataset,
-        [train_count, val_count],
-        generator=torch.Generator().manual_seed(42),
+    # full_dataset = datasets.ImageFolder(root=data_path, transform=shared_transforms)
+    full_dataset = loader.Dataset(
+        data_path, name=name, is_train=is_train,
+        transform=None, proportion=proportion
     )
 
-    train_loader = DataLoader(
-        train_subset, batch_size=batch_size, shuffle=True, num_workers=2
-    )
+    if is_train:
 
-    val_loader = DataLoader(
-        val_subset, batch_size=batch_size, shuffle=False, num_workers=2
-    )
+        if augment:
+            # Data_augmentation (in preprocess file)
+            print(f"Augmenting training data with patches...")
+            # Extract patches from training data
+            augmented_samples = preprocess.augment_dataset_with_patches(
+                full_dataset,
+                # patch_size=patch_size,
+                # stride=stride,
+                # chip_size=chip_size,
+                desc="Train augmentation"
+            )
 
-    return train_loader, val_loader
+            print(f"\nRésultats augmentation :")
+            print(f"  Train : {len(full_dataset)} images → {len(augmented_samples)} patches")
+            print(f"  Facteur : ~{len(augmented_samples) / len(full_dataset):.0f}x (13x13 = 169 patches/image)")
+
+            augmented_dataset = preprocess.AugmentedDataset(augmented_samples)
+        else:
+            augmented_dataset = full_dataset
+
+        # Split into train (80%) and validation (20%)
+        train_size = int(0.8 * len(augmented_dataset))
+        val_size = len(augmented_dataset) - train_size
+
+        train_dataset, val_dataset = random_split(augmented_dataset, [train_size, val_size])
+
+        # CenterCrop for val and RandomCrop for train
+        train_dataset_transformed = preprocess.TransformWrapper(train_dataset, shared_transforms)
+        val_dataset_transformed = preprocess.TransformWrapper(val_dataset, shared_transforms)
+        
+        train_data_loader = torch.utils.data.DataLoader(
+            train_dataset_transformed, batch_size=batch_size, shuffle=is_train, num_workers=1
+        )
+
+        val_data_loader = torch.utils.data.DataLoader(
+            val_dataset_transformed, batch_size=batch_size, shuffle=False, num_workers=1
+        )
+
+        # Check first batch
+        for images, labels, _ in train_data_loader:
+            print(f"\nFirst batch shapes:")
+            print(f"  Images: {images.shape}, dtype: {images.dtype}")
+            print(f"  Labels: {labels.shape}, dtype: {labels.dtype}")
+            print(f"  Labels values: {labels.tolist()[:10]}")
+            print(f"  Unique labels: {torch.unique(labels).tolist()}")
+            break
+
+        return train_data_loader, val_data_loader
+    
+    else:
+        print('is_train must be True ;)')
 
 
 @torch.no_grad()
-def validation(m, ds):
+def validation(m, ds, debug=False):
     num_data = 0
     corrects = 0
 
@@ -104,10 +143,10 @@ def validation(m, ds):
         _, predictions = torch.max(predictions.data, 1)
 
         # DEBUG: Check predictions
-        if i == 0:
-            print(f"Predicted classes: {predictions[:10]}")
-            print(f"True labels: {labels[:10]}")
-            print(f"Matches: {(predictions == labels)[:10]}")
+        if debug and i == 0:
+            logging.info(f"Predicted classes: {predictions[:10]}")
+            logging.info(f"True labels: {labels[:10]}")
+            logging.info(f"Matches: {(predictions == labels)[:10]}")
 
         labels = labels.type(torch.LongTensor)
         num_data += labels.size(0)
@@ -129,9 +168,14 @@ def run(
     weight_decay,
     dropout_rate,
     model_name,
+    proportion=None,
     experiments_path=None,
+    debug=False,
 ):
-    train_set, val_set = load_dataset(DATA_PATH, batch_size=batch_size)
+    # data_path = os.path.join(DATA_PATH, dataset)
+    data_path = DATA_PATH
+
+    train_set, val_set = load_dataset(data_path=data_path, batch_size=batch_size, is_train=True, name=dataset, proportion=proportion)
     # test_set = load_dataset(DATA_PATH, False, dataset, batch_size)
 
     net = AlexNet(classes=classes, dropout_rate=dropout_rate)
@@ -166,14 +210,23 @@ def run(
         m.net.train()
         for i, data in enumerate(tqdm(train_set)):
             images, labels, _ = data
+
+            images = images.to(m.device)
+            labels = labels.to(m.device)
+
             _loss.append(m.optimize(images, labels))
+
+            # DEBUG: Check predictions
+            if debug and i == 0:
+                logging.info(f"Labels: {labels[:10]}")
+                logging.info(f"Loss: {_loss[:10]}")
 
         if m.lr_scheduler:
             lr = m.lr_scheduler.get_last_lr()[0]
             m.lr_scheduler.step()
 
-        train_accuracy = validation(m, train_set)
-        val_accuracy = validation(m, val_set)
+        train_accuracy = validation(m, train_set, debug=debug)
+        val_accuracy = validation(m, val_set, debug=debug)
 
         logging.info(
             f"Epoch: {epoch + 1:03d}/{epochs:03d} | loss={np.mean(_loss):.4f} | lr={lr} | Train accuracy={train_accuracy:.2f} | Validation accuracy={val_accuracy:.2f}"
@@ -206,6 +259,7 @@ def main(_):
     channels = config["channels"]
     epochs = config["epochs"]
     batch_size = config["batch_size"]
+    proportion = config.get("proportion", None)
 
     lr = config["lr"]
     lr_step = config["lr_step"]
@@ -228,6 +282,7 @@ def main(_):
         weight_decay,
         dropout_rate,
         model_name,
+        proportion,
         experiments_path,
     )
 
