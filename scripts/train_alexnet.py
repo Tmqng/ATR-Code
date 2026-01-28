@@ -73,7 +73,7 @@ def main(_):
         is_train=True, 
         name=dataset, 
         proportion=proportion,
-        augment=False
+        augment=True
     )
 
     net = AlexNet(classes=classes, dropout_rate=dropout_rate)
