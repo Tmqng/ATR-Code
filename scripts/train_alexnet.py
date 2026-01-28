@@ -62,7 +62,7 @@ def main(_):
         [
             transforms.Grayscale(num_output_channels=1),
             transforms.Resize(input_size),
-            transforms.Lambda(lambda x: x / 255.0)
+            # transforms.Lambda(lambda x: x / 255.0)
         ]
     )
 
