@@ -56,7 +56,7 @@ def load_dataset(
         [
             transforms.Grayscale(num_output_channels=1),
             transforms.Resize(input_size),
-            # transforms.ToTensor(),
+            transforms.Lambda(lambda x: x / 255.0),
         ]
     )
 
@@ -71,7 +71,7 @@ def load_dataset(
 
         if augment:
             # Data_augmentation (in preprocess file)
-            print(f"Augmenting training data with patches...")
+            logging.info("Augmenting training data with patches...")
             # Extract patches from training data
             augmented_samples = preprocess.augment_dataset_with_patches(
                 full_dataset,
@@ -81,9 +81,9 @@ def load_dataset(
                 desc="Train augmentation"
             )
 
-            print(f"\nRésultats augmentation :")
-            print(f"  Train : {len(full_dataset)} images → {len(augmented_samples)} patches")
-            print(f"  Facteur : ~{len(augmented_samples) / len(full_dataset):.0f}x (13x13 = 169 patches/image)")
+            logging.info("Résultats augmentation :")
+            logging.info(f"  Train : {len(full_dataset)} images → {len(augmented_samples)} patches")
+            logging.info(f"  Facteur : ~{len(augmented_samples) / len(full_dataset):.0f}x (13x13 = 169 patches/image)")
 
             augmented_dataset = preprocess.AugmentedDataset(augmented_samples)
         else:
@@ -109,17 +109,17 @@ def load_dataset(
 
         # Check first batch
         for images, labels, _ in train_data_loader:
-            print(f"\nFirst batch shapes:")
-            print(f"  Images: {images.shape}, dtype: {images.dtype}")
-            print(f"  Labels: {labels.shape}, dtype: {labels.dtype}")
-            print(f"  Labels values: {labels.tolist()[:10]}")
-            print(f"  Unique labels: {torch.unique(labels).tolist()}")
+            logging.info("First batch shapes:")
+            logging.info(f"  Images: {images.shape}, dtype: {images.dtype}")
+            logging.info(f"  Labels: {labels.shape}, dtype: {labels.dtype}")
+            logging.info(f"  Labels values: {labels.tolist()[:10]}")
+            logging.info(f"  Unique labels: {torch.unique(labels).tolist()}")
             break
 
         return train_data_loader, val_data_loader
     
     else:
-        print('is_train must be True ;)')
+        logging.warning('is_train must be True ;)')
 
 
 @torch.no_grad()

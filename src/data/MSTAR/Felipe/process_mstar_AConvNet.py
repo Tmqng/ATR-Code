@@ -156,6 +156,8 @@ target_name_confuser_rejection = ('BMP2', 'BTR70', 'T72', '2S1', 'ZIL131')
 
 target_name_all = set(target_name_soc + target_name_eoc_1 + target_name_eoc_2 + target_name_confuser_rejection)
 
+target_name_MIXED = set(target_name_soc + target_name_eoc_1 + target_name_eoc_2)
+
 # serial_number = {
 #     # 2S1
 #     'b01': 0, 
