@@ -68,7 +68,7 @@ def main(_):
 
     train_set, val_set = load.load_dataset(
         data_path=DATA_PATH, 
-        transforms=shared_transforms, 
+        transform=shared_transforms, 
         batch_size=batch_size, 
         is_train=True, 
         name=dataset, 
