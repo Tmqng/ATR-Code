@@ -148,7 +148,7 @@ class Model(object):
             if experiments_path:
                 self.save(os.path.join(model_path, f'model-{epoch + 1:03d}.pth'))
 
-            with open(os.path.join(history_path, f'history-{self.experience_name}.json'), mode='w', encoding='utf-8') as f:
+            with open(os.path.join(history_path, f'history-{experience_name}.json'), mode='w', encoding='utf-8') as f:
                 json.dump(history, f, ensure_ascii=True, indent=2)
 
     def save(self, path):
