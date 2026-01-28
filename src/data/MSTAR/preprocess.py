@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from skimage import transform
 from torch.utils.data import DataLoader
 
-from . import loader
+from . import dataset
 
 
 class ToTensor(object):
@@ -101,7 +101,7 @@ class TransformWrapper(object):
         
         return image, label, serial_number
     
-class AugmentedDataset(loader.Dataset):
+class AugmentedDataset(dataset.Dataset):
     """Dataset contenant les patches augmentés"""
     def __init__(self, augmented_data):
         self.data = augmented_data
