@@ -17,7 +17,6 @@ class Model(object):
     def __init__(self, **params):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print("Device used:", self.device)
-        self.model_name = params.get("model_name")
         self.net = params.get(
             "net",
             network.AConvNet(
@@ -107,11 +106,11 @@ class Model(object):
     
     def run(self, train_set, val_set, epochs, experience_name, experiments_path=None, debug=False):
 
-        model_path = os.path.join(experiments_path, f'{self.model_name}/models/{experience_name}')
+        model_path = os.path.join(experiments_path, f'{self.net.model_name}/models/{experience_name}')
         if not os.path.exists(model_path):
             os.makedirs(model_path, exist_ok=True)
 
-        history_path = os.path.join(experiments_path, f'{self.model_name}/history')
+        history_path = os.path.join(experiments_path, f'{self.net.model_name}/history')
         if not os.path.exists(history_path):
             os.makedirs(history_path, exist_ok=True)
 

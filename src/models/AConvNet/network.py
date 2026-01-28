@@ -8,6 +8,8 @@ class AConvNet(nn.Module):
 
     def __init__(self, **params):
         super(AConvNet, self).__init__()
+        self.model_name = 'AConvNet'
+
         self.dropout_rate = params.get('dropout_rate', 0.5)
         self.classes = params.get('classes', 10)
         self.channels = params.get('channels', 1)

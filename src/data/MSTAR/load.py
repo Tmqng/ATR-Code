@@ -4,6 +4,8 @@ from . import preprocess
 import torch
 from torch.utils.data import DataLoader, random_split
 
+from typing import Iterable
+
 def load_dataset(data_path, is_train, transform, name, batch_size, augment, proportion):
     """
     Docstring for load_dataset
@@ -53,7 +55,7 @@ def load_dataset(data_path, is_train, transform, name, batch_size, augment, prop
 
         train_dataset, val_dataset = random_split(augmented_dataset, [train_size, val_size])
 
-        if isinstance(transform, list):
+        if isinstance(transform, Iterable):
             train_transform, val_transform= transform
         else:
             train_transform = transform
