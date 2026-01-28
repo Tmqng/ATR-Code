@@ -1,5 +1,5 @@
-import dataset
-import preprocess
+from . import dataset
+from . import preprocess
 
 import torch
 from torch.utils.data import DataLoader, random_split
