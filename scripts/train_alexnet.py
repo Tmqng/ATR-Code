@@ -72,7 +72,8 @@ def main(_):
         batch_size=batch_size, 
         is_train=True, 
         name=dataset, 
-        proportion=proportion
+        proportion=proportion,
+        augment=False
     )
 
     net = AlexNet(classes=classes, dropout_rate=dropout_rate)
