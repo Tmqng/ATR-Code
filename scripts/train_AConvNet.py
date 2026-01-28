@@ -68,10 +68,16 @@ def main(_):
     experience_name = config['experience_name']
 
     # define your preprocessing functions
-    transform = torchvision.transforms.Compose([
-        preprocess.RandomCrop(94), 
-        torchvision.transforms.Lambda(lambda x: x / 255.0)
-    ])
+    transform = [
+        torchvision.transforms.Compose([
+            preprocess.RandomCrop(94), 
+            torchvision.transforms.Lambda(lambda x: x / 255.0)
+        ]),
+        torchvision.transforms.Compose([
+            preprocess.CenterCrop(94), 
+            torchvision.transforms.Lambda(lambda x: x / 255.0)
+        ]),
+    ]
 
     train_set, val_set = load.load_dataset(
         data_path=DATA_PATH, 
