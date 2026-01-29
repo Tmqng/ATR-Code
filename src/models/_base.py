@@ -105,7 +105,7 @@ class Model(object):
         accuracy = 100 * corrects / num_data
         return accuracy
     
-    def run(self, train_set, val_set, epochs, experience_name, experiments_path=None, debug=False):
+    def run(self, train_set, val_set, epochs, experience_name, experiments_path=None, debug=False, early_stopping=False):
 
         model_path = os.path.join(experiments_path, f'{self.net.model_name}/models/{experience_name}')
         if not os.path.exists(model_path):
@@ -150,6 +150,10 @@ class Model(object):
 
             with open(os.path.join(history_path, f'history-{experience_name}.json'), mode='w', encoding='utf-8') as f:
                 json.dump(history, f, ensure_ascii=True, indent=2)
+
+            if early_stopping:
+                # choose criterion
+                continue
 
     def save(self, path):
         torch.save(self.net.state_dict(), path)
