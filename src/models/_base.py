@@ -68,6 +68,7 @@ class Model(object):
     
     @torch.no_grad()
     def validation(self, ds, debug=False):
+        # TODO separate into predict (computing predictions) and compute_metrics function
         num_data = 0
         corrects = 0
 
