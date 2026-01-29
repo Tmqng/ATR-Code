@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader, random_split
 
 from typing import Iterable
 
-def load_dataset(data_path, is_train, transform, name, batch_size, augment, proportion, num_workers=1):
+def load_dataset(data_path, is_train, transform, name, batch_size, augment, proportion, num_workers=0):
     """
     Docstring for load_dataset
     
