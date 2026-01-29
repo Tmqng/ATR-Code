@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader, random_split
 
 from typing import Iterable
 
-def load_dataset(data_path, is_train, transform, name, batch_size, augment, proportion):
+def load_dataset(data_path, is_train, transform, name, batch_size, augment, proportion, num_workers=1):
     """
     Docstring for load_dataset
     
@@ -65,11 +65,11 @@ def load_dataset(data_path, is_train, transform, name, batch_size, augment, prop
         val_dataset_transformed = preprocess.TransformWrapper(val_dataset, val_transform)
         
         train_data_loader = DataLoader(
-            train_dataset_transformed, batch_size=batch_size, shuffle=is_train, num_workers=1
+            train_dataset_transformed, batch_size=batch_size, shuffle=is_train, num_workers=num_workers
         )
 
         val_data_loader = DataLoader(
-            val_dataset_transformed, batch_size=batch_size, shuffle=False, num_workers=1
+            val_dataset_transformed, batch_size=batch_size, shuffle=False, num_workers=num_workers
         )
 
         # Check first batch
@@ -87,6 +87,6 @@ def load_dataset(data_path, is_train, transform, name, batch_size, augment, prop
     else:
         test_dataset_transformed = preprocess.TransformWrapper(_dataset, transform)
         data_loader = torch.utils.data.DataLoader(
-            test_dataset_transformed, batch_size=batch_size, shuffle=is_train, num_workers=1
+            test_dataset_transformed, batch_size=batch_size, shuffle=is_train, num_workers=num_workers
         )
         return data_loader
