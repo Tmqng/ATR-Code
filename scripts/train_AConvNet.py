@@ -78,12 +78,12 @@ def main(_):
         torchvision.transforms.Compose([
             # preprocess.LeeFilterTransform(window_size=5, noise_variance=0),
             preprocess.RandomCrop(94),
-            # torchvision.transforms.Lambda(lambda x: x / 255.0)
+            torchvision.transforms.Lambda(lambda x: x / 255.0)
         ]),
         torchvision.transforms.Compose([
             # preprocess.LeeFilterTransform(window_size=5, noise_variance=0),
             preprocess.CenterCrop(94), 
-            # torchvision.transforms.Lambda(lambda x: x / 255.0)
+            torchvision.transforms.Lambda(lambda x: x / 255.0)
         ]),
     ]
 
