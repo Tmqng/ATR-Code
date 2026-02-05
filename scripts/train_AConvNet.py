@@ -87,7 +87,7 @@ def main(_):
         transform=transform, 
         name=dataset, 
         batch_size=batch_size, 
-        augment=True, 
+        augment=False, 
         proportion=proportion
     )
 
