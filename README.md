@@ -8,6 +8,7 @@ Le but de ce répertoire est de fournir une base de code afin de pouvoir entraî
 
 La structure du projet est la suivante : 
 
+```
 ATR-Code/
 │
 ├── datasets/                      # Datasets utilisés dans le projet
@@ -39,6 +40,7 @@ ATR-Code/
 │   └── utils/                     # Fonctions utilitaires partagées
 │
 └── README.md
+```
 
 ## Prise en main
 
