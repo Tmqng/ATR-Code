@@ -67,6 +67,12 @@ def main(_):
 
     experience_name = config['experience_name']
 
+    # augment = config['use_augment']
+    # normalize = config['normalize']
+    # lee_window_size = config['lee_window_size']
+    # lee_noise_variance = config['lee_noise_variance']
+    
+
     # define your preprocessing functions
     transform = [
         torchvision.transforms.Compose([
@@ -87,7 +93,7 @@ def main(_):
         transform=transform, 
         name=dataset, 
         batch_size=batch_size, 
-        augment=False, 
+        augment=False, # augment
         proportion=proportion
     )
 
