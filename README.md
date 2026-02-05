@@ -1,6 +1,7 @@
 # ATR – Automatic Target Recognition
 
 ## Résumé
+
 > Ce projet s'intéresse au problème de classification de cibles militaires dans le cadre de l'ATR SAR : Automatic Target Recognition sur données radar de type SAR.
 
 Le but de ce répertoire est de fournir une base de code afin de pouvoir entraîner facilement différentes architecture de réseaux de neurones sur le dataset de référence MSTAR. La pipeline est construite de façon modulable : il est aisé de rajouter un bloc de pré-traitement de données, ou de changer de modèle de DL par exemple.
@@ -38,8 +39,6 @@ ATR-Code/
 │   └── utils/                     # Fonctions utilitaires partagées
 │
 └── README.md
-
----
 
 ## Prise en main
 
