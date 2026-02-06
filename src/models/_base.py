@@ -1,3 +1,5 @@
+"""Training, evaluation, and checkpointing wrapper for models."""
+
 import torch
 
 from models.AConvNet import network

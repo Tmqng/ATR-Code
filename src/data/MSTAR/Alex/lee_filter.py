@@ -1,3 +1,5 @@
+"""Lee filter implementation and transform wrapper for SAR denoising."""
+
 import torch
 import torch.nn.functional as F
 import numpy as np

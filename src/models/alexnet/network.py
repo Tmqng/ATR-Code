@@ -1,3 +1,5 @@
+"""AlexNet-style network adapted for single-channel SAR inputs."""
+
 import torch
 import torch.nn as nn
 

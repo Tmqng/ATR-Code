@@ -1,3 +1,5 @@
+"""Dataset wrapper for MSTAR PNG/JSON structure and sampling control."""
+
 import glob
 import json
 import logging

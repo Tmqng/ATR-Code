@@ -1,3 +1,5 @@
+"""Dataset loading helpers for MSTAR training/validation/test splits."""
+
 from . import dataset
 from . import preprocess
 
