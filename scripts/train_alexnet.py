@@ -1,3 +1,18 @@
+"""Training script for AlexNet model on MSTAR dataset.
+
+This script performs end-to-end training of the AlexNet convolutional neural
+network model on the MSTAR (Moving and Stationary Target Recognition) dataset.
+It loads configuration parameters from JSON files, preprocesses grayscale SAR
+images to AlexNet's standard input size (227x227), and runs the training loop
+with validation.
+
+The script uses command-line flags to specify:
+    - experiments_path: Path to experiments directory
+    - config_name: Path to configuration JSON file (relative to experiments_path)
+
+Usage:
+    python train_alexnet.py --config_name=alexnet/config/alexnet-SOC.json
+"""
 import json
 import os
 import sys
