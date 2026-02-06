@@ -44,9 +44,9 @@ ATR-Code/
 
 ## Prise en main
 
-Ce projet utilise **uv** pour la gestion des dépendances Python (rapide, reproductible, moderne).
+### Installation avec uv
 
-### Installation de uv
+Ce projet est compatible avec **uv** pour la gestion des dépendances Python (rapide, reproductible, moderne).
 
 #### Option 1 — via pip
 ```bash
@@ -101,7 +101,31 @@ Les fichiers pyproject.toml et uv.lock sont automatiquement mis à jour.
 ```bash
 uv run python_script.py
 ```
+---
 
+### Alternative : Installation avec conda et pip
+
+Si vous préférez utiliser **conda** au lieu de **uv**, voici les étapes :
+
+#### Étape 1 : Créer un environnement conda avec Python 3.12
+
+```bash
+conda create -n atr-code python=3.12
+```
+
+#### Étape 2 : Activer l'environnement
+
+```bash
+conda activate atr-code
+```
+
+#### Étape 3 : Installer les dépendances via pip
+
+```bash
+pip install -r requirements.txt
+```
+
+Cela créera un environnement isolé avec Python 3.12 et toutes les dépendances requises.
 
 ---
 
