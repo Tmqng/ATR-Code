@@ -1,4 +1,4 @@
-"""Convert raw MSTAR CD data into PNG + JSON datasets for training."""
+"""Script to convert raw MSTAR CD data into PNG + JSON datasets for training."""
 
 import os
 import re

@@ -22,6 +22,9 @@ project_root = os.path.abspath(
 
 
 class Dataset(torch.utils.data.Dataset):
+    """
+    MSTAR-specific Dataset class
+    """
     def __init__(self, path, name="SOC", is_train=False, transform=None, proportion=None):
         self.is_train = is_train
         self.name = name
@@ -176,7 +179,7 @@ if __name__ == "__main__":
                     "Warning: 'all' size is not greater than 'SOC'. Check paths."
                 )
         else:
-            logging.error("❌ Error: No data found for 'all'.")
+            logging.error(" Error: No data found for 'all'.")
 
     except Exception as e:
         logging.error(f"Error loading 'all': {e}")
@@ -198,7 +201,7 @@ if __name__ == "__main__":
             logging.info(f"{dist}")
 
         else:
-            logging.error("❌ Error: No data found for 'confuser_rejection'.")
+            logging.error(" Error: No data found for 'confuser_rejection'.")
 
     except Exception as e:
         logging.error(f"Error loading 'OUTLIER': {e}")
