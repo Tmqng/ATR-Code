@@ -1,10 +1,46 @@
 # ATR – Automatic Target Recognition
 
 ## Résumé
-> ✏️ **À compléter**  
-> Brève description du projet, du contexte (ATR, MSTAR, AConvNet, etc.) et des objectifs.
 
----
+> Ce projet s'intéresse au problème de classification de cibles militaires dans le cadre de l'ATR SAR : Automatic Target Recognition sur données radar de type SAR.
+
+Le but de ce répertoire est de fournir une base de code afin de pouvoir entraîner facilement différentes architecture de réseaux de neurones sur le dataset de référence MSTAR. La pipeline est construite de façon modulable : il est aisé de rajouter un bloc de pré-traitement de données, ou de changer de modèle de DL par exemple.
+
+La structure du projet est la suivante : 
+
+```
+ATR-Code/
+│
+├── datasets/                      # Datasets utilisés dans le projet
+│   ├── dataset-1/
+│   └── dataset-2/
+│
+├── experiments/                   # Expériences par modèle
+│   └── nom_modele/
+│       ├── config/                # Fichiers JSON de configuration (hyperparamètres)
+│       ├── history/               # Historique d'entraînement (loss, accuracy, etc.)
+│       └── models/                # Modèles sauvegardés pendant l'entraînement
+│
+├── notebooks/                     # Notebooks d'expérimentation et d'inférence
+│
+├── scripts/                       # Scripts exécutables depuis le terminal
+│   ├── train.py                   # Entraînement (exemple)
+│   ├── generate_dataset.py        # Génération des datasets (exemple)
+│
+│
+|── src/                           # Code source principal
+│   ├── data/                      # Chargement et pré-traitement des données
+│   │   └── nom_dataset/           # Spécifique à chaque dataset
+│   │
+│   ├── models/                    # Modèles
+│   │   ├── _base.py               # Classe Model générique
+│   │   ├── architecture_1/        # Définition d'une architecture
+│   │   └── architecture_2/
+│   │
+│   └── utils/                     # Fonctions utilitaires partagées
+│
+└── README.md
+```
 
 ## Prise en main
 
@@ -101,7 +137,7 @@ nom_du_dataset/
         └── sample_1.json
 ```
 
-(ex : télécharger et décompresser le dataset suivant https://www.kaggle.com/datasets/minhqunnguyen/mstar-images-et-json)
+(ex : télécharger et décompresser le dataset suivant pour voir un example https://www.kaggle.com/datasets/minhqunnguyen/mstar-images-et-json)
 
 Les configurations d’expériences sont définies dans experiments/<model_name>/config/.
 
