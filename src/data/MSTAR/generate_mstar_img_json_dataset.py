@@ -1,3 +1,5 @@
+"""Script to convert raw MSTAR CD data into PNG + JSON datasets for training."""
+
 import os
 import re
 import numpy as np

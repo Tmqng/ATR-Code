@@ -1,3 +1,5 @@
+"""AConvNet architecture assembled from reusable convolution blocks."""
+
 import torch.nn as nn
 import torch
 

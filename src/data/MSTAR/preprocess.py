@@ -1,3 +1,5 @@
+"""Preprocessing transforms, augmentation, and filtering for MSTAR data."""
+
 import numpy as np
 import tqdm
 

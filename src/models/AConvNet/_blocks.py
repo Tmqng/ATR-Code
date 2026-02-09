@@ -1,3 +1,5 @@
+"""Reusable dense and convolution blocks with initialization hooks."""
+
 import torch.nn as nn
 
 import collections

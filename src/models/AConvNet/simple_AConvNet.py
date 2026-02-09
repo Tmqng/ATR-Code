@@ -1,3 +1,5 @@
+"""Simplified AConvNet variants for quick experimentation."""
+
 import torch.nn as nn
 
 class Simple_AConvNet(nn.Module):

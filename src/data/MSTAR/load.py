@@ -1,3 +1,5 @@
+"""Dataset loading helpers for MSTAR training/validation/test splits."""
+
 from . import dataset
 from . import preprocess
 
@@ -10,11 +12,11 @@ def load_dataset(data_path, is_train, transform, name, batch_size, augment, prop
     """
     Docstring for load_dataset
     
-    :param path: Description
-    :param is_train: Description
+    :param path: data path
+    :param is_train: True if training else False
     :param transform: transform or [train_transform, val_transform]
-    :param name: Description
-    :param batch_size: Description
+    :param name: dataset name
+    :param batch_size: batch_size
 
     Load train, val or test dataset and apply transformations.
     """

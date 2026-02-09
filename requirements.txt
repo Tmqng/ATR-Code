@@ -1,0 +1,33 @@
+# Core dependencies for ATR-Code project
+absl-py>=2.3.1
+numpy>=2.4.0
+pillow>=12.1.0
+tqdm>=4.67.1
+
+# Deep Learning Framework
+torch>=2.9.1
+torchvision>=0.24.1
+tensorboard>=2.20.0
+
+# Computer Vision and Image Processing
+opencv-python>=4.11.0.86
+scikit-image>=0.26.0
+
+# Scientific Computing and Data Analysis
+scikit-learn>=1.6.0
+matplotlib>=3.9.0
+seaborn>=0.13.0
+
+# Hyperparameter Optimization
+optuna>=4.7.0
+
+# Model Utilities and Visualization
+torchsummary>=1.5.1
+ipywidgets>=8.1.0
+
+# Jupyter and IPython (for notebooks)
+ipython>=8.0.0
+jupyter>=1.0.0
+
+# Optional: Google Colab support (for Colab notebooks)
+# google-colab is only available in Google Colab environment

@@ -1,3 +1,18 @@
+"""Training script for AConvNet model on MSTAR dataset.
+
+This script performs end-to-end training of the AConvNet neural network model
+on the MSTAR (Moving and Stationary Target Recognition) dataset. It loads
+configuration parameters from JSON files, preprocesses the dataset with
+random/center cropping and normalization, initializes the AConvNet model,
+and runs the training loop with validation.
+
+The script uses command-line flags to specify:
+    - experiments_path: Path to experiments directory
+    - config_name: Path to configuration JSON file (relative to experiments_path)
+
+Usage:
+    python train_AConvNet.py --config_name=AConvNet/config/AConvNet-SOC.json
+"""
 from absl import logging
 from absl import flags
 from absl import app
