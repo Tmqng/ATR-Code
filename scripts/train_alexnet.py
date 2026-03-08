@@ -13,28 +13,22 @@ The script uses command-line flags to specify:
 Usage:
     python train_alexnet.py --config_name=alexnet/config/alexnet-SOC.json
 """
-import json
+
 import os
 import sys
 
-import numpy as np
 import torch
-from torchvision import datasets, transforms
 from absl import app, flags, logging
-from torch.utils.data import DataLoader, random_split
-from tqdm import tqdm
-
+from torchvision import transforms
 
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.join(project_root, "src"))
 
-from models._base import Model
-from models.alexnet.network import AlexNet
-from utils import common
-from data.MSTAR import preprocess
-from data.MSTAR import dataset
-from data.MSTAR import load
-
+# modules in src — imported after sys.path is configured
+from data.MSTAR import load  # noqa: E402
+from models._base import Model  # noqa: E402
+from models.alexnet.network import AlexNet  # noqa: E402
+from utils import common  # noqa: E402
 
 DATA_PATH = os.path.join(project_root, "datasets/MSTAR/MSTAR_IMG_JSON")
 model_str = "alexnet"
@@ -46,6 +40,7 @@ FLAGS = flags.FLAGS
 
 common.set_random_seed(42)
 
+
 def main(_):
     logging.info("Start")
     experiments_path = FLAGS.experiments_path
@@ -55,7 +50,7 @@ def main(_):
 
     dataset = config["dataset"]
     classes = config["num_classes"]
-    channels = config["channels"]
+    channels = config["channels"]  # noqa: F841  # read for completeness, AlexNet uses 1 channel
     epochs = config["epochs"]
     batch_size = config["batch_size"]
     proportion = config.get("proportion", None)
@@ -77,18 +72,18 @@ def main(_):
         [
             transforms.Grayscale(num_output_channels=1),
             transforms.Resize(input_size),
-            transforms.Lambda(lambda x: x / 255.0)
+            transforms.Lambda(lambda x: x / 255.0),
         ]
     )
 
     train_set, val_set = load.load_dataset(
-        data_path=DATA_PATH, 
-        transform=shared_transforms, 
-        batch_size=batch_size, 
-        is_train=True, 
-        name=dataset, 
+        data_path=DATA_PATH,
+        transform=shared_transforms,
+        batch_size=batch_size,
+        is_train=True,
+        name=dataset,
         proportion=proportion,
-        augment=True
+        augment=True,
     )
 
     net = AlexNet(classes=classes, dropout_rate=dropout_rate)

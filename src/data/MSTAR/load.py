@@ -1,51 +1,63 @@
 """Dataset loading helpers for MSTAR training/validation/test splits."""
 
-from . import dataset
-from . import preprocess
+from typing import Iterable
 
 import torch
 from torch.utils.data import DataLoader, random_split
 
-from typing import Iterable
+from . import dataset, preprocess
 
-def load_dataset(data_path, is_train, transform, name, batch_size, augment, proportion, num_workers=0):
-    """
-    Docstring for load_dataset
-    
-    :param path: data path
-    :param is_train: True if training else False
-    :param transform: transform or [train_transform, val_transform]
-    :param name: dataset name
-    :param batch_size: batch_size
 
-    Load train, val or test dataset and apply transformations.
+def load_dataset(
+    data_path, is_train, transform, name, batch_size, augment, proportion, num_workers=0
+):
+    """Load MSTAR data and return one or two DataLoaders.
+
+    When *is_train* is True the dataset is split 80/20 into train and
+    validation loaders.  When False a single test loader is returned.
+
+    Args:
+        data_path (str): Root path to the MSTAR_IMG_JSON dataset.
+        is_train (bool): If True, return (train_loader, val_loader); else test_loader.
+        transform (callable | list[callable]): Transform(s) to apply.  If a
+            list/iterable of two elements is provided, the first is used for
+            training and the second for validation.
+        name (str): Dataset split name (e.g. 'SOC', 'EOC-1', 'all').
+        batch_size (int): Number of samples per batch.
+        augment (bool): If True, apply patch-based data augmentation on the
+            training split before the 80/20 split.
+        proportion (float | None): Fraction of samples to keep per class.
+        num_workers (int): DataLoader worker processes (default 0).
+
+    Returns:
+        tuple | DataLoader: (train_loader, val_loader) when is_train=True,
+            otherwise a single test DataLoader.
     """
 
     # Load Dataset from files
     _dataset = dataset.Dataset(
-        data_path,
-        name=name, 
-        is_train=is_train,
-        proportion=proportion
+        data_path, name=name, is_train=is_train, proportion=proportion
     )
 
     if is_train:
-
         if augment:
             # Data_augmentation (in preprocess file)
-            print(f"Augmenting training data with patches...")
+            print("Augmenting training data with patches...")
             # Extract patches from training data
             augmented_samples = preprocess.augment_dataset_with_patches(
                 _dataset,
                 # patch_size=patch_size,
                 # stride=stride,
                 # chip_size=chip_size,
-                desc="Train augmentation"
+                desc="Train augmentation",
             )
 
-            print(f"\nRésultats augmentation :")
-            print(f"  Train : {len(_dataset)} images → {len(augmented_samples)} patches")
-            print(f"  Facteur : ~{len(augmented_samples) / len(_dataset):.0f}x (13x13 = 169 patches/image)")
+            print("\nAugmentation results:")
+            print(f"  Train: {len(_dataset)} images -> {len(augmented_samples)} patches")
+            print(
+                f"  Factor: ~{len(augmented_samples) / len(_dataset):.0f}x"
+                " (13x13 = 169 patches/image)"
+            )
 
             augmented_dataset = preprocess.AugmentedDataset(augmented_samples)
         else:
@@ -55,28 +67,40 @@ def load_dataset(data_path, is_train, transform, name, batch_size, augment, prop
         train_size = int(0.8 * len(augmented_dataset))
         val_size = len(augmented_dataset) - train_size
 
-        train_dataset, val_dataset = random_split(augmented_dataset, [train_size, val_size])
+        train_dataset, val_dataset = random_split(
+            augmented_dataset, [train_size, val_size]
+        )
 
         if isinstance(transform, Iterable):
-            train_transform, val_transform= transform
+            train_transform, val_transform = transform
         else:
             train_transform = transform
             val_transform = transform
-            
-        train_dataset_transformed = preprocess.TransformWrapper(train_dataset, train_transform)
-        val_dataset_transformed = preprocess.TransformWrapper(val_dataset, val_transform)
-        
+
+        train_dataset_transformed = preprocess.TransformWrapper(
+            train_dataset, train_transform
+        )
+        val_dataset_transformed = preprocess.TransformWrapper(
+            val_dataset, val_transform
+        )
+
         train_data_loader = DataLoader(
-            train_dataset_transformed, batch_size=batch_size, shuffle=is_train, num_workers=num_workers
+            train_dataset_transformed,
+            batch_size=batch_size,
+            shuffle=is_train,
+            num_workers=num_workers,
         )
 
         val_data_loader = DataLoader(
-            val_dataset_transformed, batch_size=batch_size, shuffle=False, num_workers=num_workers
+            val_dataset_transformed,
+            batch_size=batch_size,
+            shuffle=False,
+            num_workers=num_workers,
         )
 
         # Check first batch
         for images, labels, _ in train_data_loader:
-            print(f"\nFirst batch shapes:")
+            print("\nFirst batch shapes:")
             print(f"  Images: {images.shape}, dtype: {images.dtype}")
             print(f"  Labels: {labels.shape}, dtype: {labels.dtype}")
             print(f"  Labels values: {labels.tolist()[:10]}")
@@ -85,10 +109,12 @@ def load_dataset(data_path, is_train, transform, name, batch_size, augment, prop
 
         return train_data_loader, val_data_loader
 
-
     else:
         test_dataset_transformed = preprocess.TransformWrapper(_dataset, transform)
         data_loader = torch.utils.data.DataLoader(
-            test_dataset_transformed, batch_size=batch_size, shuffle=is_train, num_workers=num_workers
+            test_dataset_transformed,
+            batch_size=batch_size,
+            shuffle=is_train,
+            num_workers=num_workers,
         )
         return data_loader

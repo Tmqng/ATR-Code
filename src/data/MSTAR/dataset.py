@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import random
+from collections import defaultdict
 
 import cv2
 import numpy as np
@@ -22,10 +23,22 @@ project_root = os.path.abspath(
 
 
 class Dataset(torch.utils.data.Dataset):
+    """MSTAR dataset loader for the PNG/JSON directory structure.
+
+    Supports SOC, EOC-1, EOC-2-CV, EOC-2-VV, OUTLIER, and combined ('all')
+    splits. Optionally sub-samples each class by a fixed proportion.
+
+    Args:
+        path (str): Root path to the MSTAR_IMG_JSON dataset directory.
+        name (str): Dataset split identifier (e.g. 'SOC', 'EOC-1', 'all').
+        is_train (bool): If True, load the training split; else the test split.
+        transform (callable, optional): Transform applied to each image on retrieval.
+        proportion (float, optional): Fraction of samples to keep per class (0, 1].
     """
-    MSTAR-specific Dataset class
-    """
-    def __init__(self, path, name="SOC", is_train=False, transform=None, proportion=None):
+
+    def __init__(
+        self, path, name="SOC", is_train=False, transform=None, proportion=None
+    ):
         self.is_train = is_train
         self.name = name
         self.proportion = proportion
@@ -36,9 +49,18 @@ class Dataset(torch.utils.data.Dataset):
         self._load_data(path, proportion=self.proportion)
 
     def __len__(self):
+        """Return the total number of samples in the dataset."""
         return len(self.labels)
 
     def __getitem__(self, idx):
+        """Return the image tensor, class label, and serial number at *idx*.
+
+        Args:
+            idx (int | list[int]): Sample index.
+
+        Returns:
+            tuple: (image_tensor, class_id, serial_number)
+        """
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
@@ -52,21 +74,43 @@ class Dataset(torch.utils.data.Dataset):
         return _image, _label, _serial_number
 
     def _load_data(self, path, proportion=None):
-        mode = 'train' if self.is_train else 'test'
+        """Scan *path* for PNG/JSON pairs and populate ``self.images`` / ``self.labels``.
+
+
+
+        Args:
+            path (str): Root dataset path.
+            proportion (float, optional): If set, randomly retain this fraction of
+                samples per class to reduce dataset size.
+        """
+        mode = "train" if self.is_train else "test"
 
         # has been modified from source paper
 
-        if self.name == 'OUTLIER':
-            if mode == 'train':
+        if self.name == "OUTLIER":
+            if mode == "train":
                 # only train with 'known' targets
-                image_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/known/*/*.png'))
-                label_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/known/*/*.json'))
+                image_list = glob.glob(
+                    os.path.join(
+                        project_root, path, f"{self.name}/{mode}/known/*/*.png"
+                    )
+                )
+                label_list = glob.glob(
+                    os.path.join(
+                        project_root, path, f"{self.name}/{mode}/known/*/*.json"
+                    )
+                )
             else:
                 # include confuser classes in test (inference)
-                image_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/*/*/*.png'))
-                label_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/*/*/*.json'))
+                image_list = glob.glob(
+                    os.path.join(project_root, path, f"{self.name}/{mode}/*/*/*.png")
+                )
+                label_list = glob.glob(
+                    os.path.join(project_root, path, f"{self.name}/{mode}/*/*/*.json")
+                )
         else:
-            ## ! This creates train and test datasets with different distributions (can be a good robustness test)
+            ## ! This creates train/test datasets with different distributions
+            ## ! (can be a good robustness test)
             folder_pattern = "*" if self.name == "all" else self.name
 
             search_path_img = os.path.join(path, folder_pattern, mode, "**/*.png")
@@ -75,7 +119,7 @@ class Dataset(torch.utils.data.Dataset):
             image_list = glob.glob(search_path_img, recursive=True)
             label_list = glob.glob(search_path_json, recursive=True)
 
-        # On trie d'abord pour garantir la correspondance
+        # Sort both lists to guarantee image/label correspondence
         image_list.sort()
         label_list.sort()
 
@@ -83,23 +127,29 @@ class Dataset(torch.utils.data.Dataset):
 
         if proportion is not None:
             logging.info(f"Proportionning dataset from path: {path}")
-            logging.info(f"Applying proportion {proportion} to dataset '{self.name}' in mode '{mode}'")
-            from collections import defaultdict
+            logging.info(
+                f"Applying proportion {proportion} to dataset"
+                f" '{self.name}' in mode '{mode}'"
+            )
             class_map = defaultdict(list)
 
             for img_p, lbl_p in data_pairs:
-                # On utilise le nom du dossier parent comme ID de classe pour le sampling
-                # Exemple: 'datasets/.../SOC/train/T72/img_01.png' -> class_folder = 'T72'
+                # Use the parent folder name as the class key for stratified sampling.
+                # Example: 'datasets/.../SOC/train/T72/img_01.png' -> class_folder = 'T72'
                 class_folder = os.path.basename(os.path.dirname(img_p))
                 class_map[class_folder].append((img_p, lbl_p))
-            logging.info("Class distribution before proportioning: " +
-                         ", ".join([f"'{k}': {len(v)}" for k, v in class_map.items()]))
+            logging.info(
+                "Class distribution before proportioning: "
+                + ", ".join([f"'{k}': {len(v)}" for k, v in class_map.items()])
+            )
 
             selected_pairs = []
             for class_name, pairs in class_map.items():
                 selected_count = max(1, int(len(pairs) * proportion))
                 selected_pairs.extend(random.sample(pairs, selected_count))
-                logging.info(f"Class '{class_name}': selected {selected_count} out of {len(pairs)} samples.")
+                logging.info(
+                    f"Class '{class_name}': selected {selected_count} out of {len(pairs)} samples."
+                )
 
             data_pairs = selected_pairs
 
@@ -108,7 +158,11 @@ class Dataset(torch.utils.data.Dataset):
         image_list = sorted(image_list, key=os.path.basename)
         label_list = sorted(label_list, key=os.path.basename)
 
-        for image_path, label_path in tqdm.tqdm(zip(image_list, label_list), desc=f'load {mode} data set', total=len(label_list)):
+        for image_path, label_path in tqdm.tqdm(
+            zip(image_list, label_list),
+            desc=f"load {mode} data set",
+            total=len(label_list),
+        ):
             image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)  # dim 2 if it's png
             if image is None:
                 logging.error(f"Failed to load image: {image_path}")
@@ -129,8 +183,6 @@ class Dataset(torch.utils.data.Dataset):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
-
     # Configuration
     DATA_PATH = "datasets/MSTAR/MSTAR_IMG_JSON"  # Adjust if your path is different
     BATCH_SIZE = 32

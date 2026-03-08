@@ -2,7 +2,18 @@
 
 import torch.nn as nn
 
+
 class Simple_AConvNet(nn.Module):
+    """Flat re-implementation of AConvNet without the block abstraction.
+
+    Mirrors the five-convolution architecture of :class:`AConvNet` using
+    explicit layer attributes instead of ``Conv2DBlock``.  Intended for quick
+    experimentation and debugging.
+
+    Args:
+        num_classes (int): Number of output classes (default 10).
+    """
+
     def __init__(self, num_classes=10):
         super(Simple_AConvNet, self).__init__()
 
@@ -43,7 +54,18 @@ class Simple_AConvNet(nn.Module):
         x = self.flatten(x)
         return x
 
+
 class AConvNet_batchnorm(nn.Module):
+    """AConvNet variant with BatchNorm inserted after every convolutional layer.
+
+    Adds ``nn.BatchNorm2d`` after each conv to accelerate convergence.
+    Architecture otherwise mirrors :class:`Simple_AConvNet`.
+
+    Args:
+        num_classes (int): Number of output classes (default 10).
+        in_channels (int): Number of input channels (default 1).
+    """
+
     def __init__(self, num_classes=10, in_channels=1):
         super(AConvNet_batchnorm, self).__init__()
 
