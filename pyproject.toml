@@ -16,3 +16,13 @@ dependencies = [
     "torchvision>=0.24.1",
     "tqdm>=4.67.1",
 ]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+# Notebooks: long output strings and plot labels are expected to exceed line limits
+"*.ipynb" = ["E501"]

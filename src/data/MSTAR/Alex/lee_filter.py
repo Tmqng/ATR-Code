@@ -2,7 +2,6 @@
 
 import torch
 import torch.nn.functional as F
-import numpy as np
 
 
 class LeeFilter:
@@ -47,7 +46,7 @@ class LeeFilter:
         # Apply filter to each channel
         filtered_channels = []
         for c in range(image.shape[0]):
-            channel = image[c:c+1]  # Keep channel dimension
+            channel = image[c : c + 1]  # Keep channel dimension
             filtered_channel = self._apply_lee_filter(channel)
             filtered_channels.append(filtered_channel)
 
@@ -64,14 +63,20 @@ class LeeFilter:
             torch.Tensor: Filtered image
         """
         # Create padding
-        padded = F.pad(image, (self.padding, self.padding, self.padding, self.padding), mode='reflect')
+        padded = F.pad(
+            image,
+            (self.padding, self.padding, self.padding, self.padding),
+            mode="reflect",
+        )
 
         # Compute local mean using convolution
-        kernel = torch.ones(1, 1, self.window_size, self.window_size, device=image.device) / (self.window_size ** 2)
+        kernel = torch.ones(
+            1, 1, self.window_size, self.window_size, device=image.device
+        ) / (self.window_size**2)
         local_mean = F.conv2d(padded, kernel, padding=0)
 
         # Compute local variance
-        local_var = F.conv2d(padded ** 2, kernel, padding=0) - local_mean ** 2
+        local_var = F.conv2d(padded**2, kernel, padding=0) - local_mean**2
 
         # Note: local_mean and local_var are already the correct size (H, W) due to convolution
 
@@ -80,7 +85,9 @@ class LeeFilter:
             # Use minimum variance as noise estimate (common approach)
             noise_var = torch.clamp(local_var.min(), min=1e-10)
         else:
-            noise_var = torch.tensor(self.noise_variance, device=image.device, dtype=image.dtype)
+            noise_var = torch.tensor(
+                self.noise_variance, device=image.device, dtype=image.dtype
+            )
 
         # Lee filter formula: mean + (var / (var + noise_var)) * (pixel - mean)
         # Avoid division by zero

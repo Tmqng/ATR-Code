@@ -1,21 +1,37 @@
 """Training, evaluation, and checkpointing wrapper for models."""
 
+import json
+import os
+
+import numpy as np
 import torch
-
-from models.AConvNet import network
-import torch.nn as nn
-
 from absl import logging
 from tqdm import tqdm
 
-import numpy as np
-
-import os
-
-import json
+from models.AConvNet import network
 
 
 class Model(object):
+    """High-level wrapper that handles training, validation, and checkpointing.
+
+    Composes a PyTorch network with an optimizer, loss criterion, and optional
+    learning-rate scheduler.  Defaults to AConvNet with Adam optimizer when no
+    ``net`` is supplied.
+
+    Keyword Args:
+        net (nn.Module, optional): Network to train. Defaults to AConvNet.
+        num_classes (int): Number of output classes (default 10).
+        channels (int): Number of input channels (default 1).
+        dropout_rate (float): Dropout probability (default 0.5).
+        lr (float): Initial learning rate (default 1e-3).
+        lr_step (list[int]): Epoch milestones for LR decay (default [50]).
+        lr_decay (float): LR multiplicative decay factor (default 0.1).
+        momentum (float): Adam beta1 (default 0.9).
+        weight_decay (float): L2 regularisation coefficient (default 4e-3).
+        criterion (nn.Module): Loss function (default CrossEntropyLoss).
+        optimizer (Optimizer): Optimizer instance (default Adam).
+    """
+
     def __init__(self, **params):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print("Device used:", self.device)
@@ -40,13 +56,13 @@ class Model(object):
 
         self.criterion = params.get("criterion", torch.nn.CrossEntropyLoss())
         self.optimizer = params.get(
-            'optimizer',
+            "optimizer",
             torch.optim.Adam(
                 self.net.parameters(),
                 lr=self.lr,
                 betas=(self.momentum, 0.999),
                 weight_decay=self.weight_decay,
-            )
+            ),
         )
 
         if self.lr_decay:
@@ -55,6 +71,15 @@ class Model(object):
             )
 
     def optimize(self, x, y):
+        """Run one forward/backward pass and update the network weights.
+
+        Args:
+            x (Tensor): Input batch.
+            y (Tensor): Target labels.
+
+        Returns:
+            float: Scalar loss value for this batch.
+        """
         p = self.net(x.to(self.device))
         loss = self.criterion(p, y.to(self.device))
 
@@ -66,10 +91,27 @@ class Model(object):
 
     @torch.no_grad()
     def inference(self, x):
+        """Run a forward pass without gradient tracking.
+
+        Args:
+            x (Tensor): Input batch.
+
+        Returns:
+            Tensor: Raw network logits.
+        """
         return self.net(x.to(self.device))
-    
+
     @torch.no_grad()
     def validation(self, ds, debug=False):
+        """Compute classification accuracy over a DataLoader.
+
+        Args:
+            ds (DataLoader): Dataset loader returning (images, labels, *extra*).
+            debug (bool): If True, log predicted vs true labels for the first batch.
+
+        Returns:
+            float: Accuracy in percent.
+        """
         # TODO separate into predict (computing predictions) and compute_metrics function
         num_data = 0
         corrects = 0
@@ -78,11 +120,10 @@ class Model(object):
         self.net.eval()
         _softmax = torch.nn.Softmax(dim=1)
         for i, data in enumerate(tqdm(ds)):
-
             try:
                 images, labels, _ = data
             except ValueError:
-                logging.error('Check your dataset loader')
+                logging.error("Check your dataset loader")
                 raise ValueError
 
             images = images.to(self.device)
@@ -106,22 +147,49 @@ class Model(object):
 
         accuracy = 100 * corrects / num_data
         return accuracy
-    
-    def run(self, train_set, val_set, epochs, experience_name, experiments_path=None, debug=False, early_stopping=False):
 
-        model_path = os.path.join(experiments_path, f'{self.net.model_name}/models/{experience_name}')
+    def run(
+        self,
+        train_set,
+        val_set,
+        epochs,
+        experience_name,
+        experiments_path=None,
+        debug=False,
+        early_stopping=False,
+    ):
+        """Train the network and save checkpoints and history to disk.
+
+        After each epoch the model state is saved as
+        ``{experiments_path}/{model_name}/models/{experience_name}/model-NNN.pth``
+        and the loss/accuracy history is written as
+        ``{experiments_path}/{model_name}/history/history-{experience_name}.json``.
+
+        Args:
+            train_set (DataLoader): Training data loader.
+            val_set (DataLoader): Validation data loader.
+            epochs (int): Number of training epochs.
+            experience_name (str): Identifier used for checkpoint filenames.
+            experiments_path (str, optional): Root directory for saved artefacts.
+            debug (bool): Forward debug flag to :meth:`validation`.
+            early_stopping (bool): Reserved for future early-stopping logic.
+        """
+
+        model_path = os.path.join(
+            experiments_path, f"{self.net.model_name}/models/{experience_name}"
+        )
         if not os.path.exists(model_path):
             os.makedirs(model_path, exist_ok=True)
 
-        history_path = os.path.join(experiments_path, f'{self.net.model_name}/history')
+        history_path = os.path.join(experiments_path, f"{self.net.model_name}/history")
         if not os.path.exists(history_path):
             os.makedirs(history_path, exist_ok=True)
 
         history = {
-            'train_loss': [],
-            'train_accuracy': [],
-            'val_loss': [],
-            'val_accuracy': []
+            "train_loss": [],
+            "train_accuracy": [],
+            "val_loss": [],
+            "val_accuracy": [],
         }
 
         for epoch in range(epochs):
@@ -140,17 +208,23 @@ class Model(object):
             val_accuracy = self.validation(val_set, debug=debug)
 
             logging.info(
-                f'Epoch: {epoch + 1:03d}/{epochs:03d} | loss={np.mean(_loss):.4f} | lr={lr} | Train accuracy={train_accuracy:.2f} | Validation accuracy={val_accuracy:.2f}'
+                f"Epoch: {epoch + 1:03d}/{epochs:03d} | loss={np.mean(_loss):.4f}"
+                f" | lr={lr} | Train accuracy={train_accuracy:.2f}"
+                f" | Validation accuracy={val_accuracy:.2f}"
             )
 
-            history['train_loss'].append(np.mean(_loss))
-            history['train_accuracy'].append(train_accuracy)
-            history['val_accuracy'].append(val_accuracy)
+            history["train_loss"].append(np.mean(_loss))
+            history["train_accuracy"].append(train_accuracy)
+            history["val_accuracy"].append(val_accuracy)
 
             if experiments_path:
-                self.save(os.path.join(model_path, f'model-{epoch + 1:03d}.pth'))
+                self.save(os.path.join(model_path, f"model-{epoch + 1:03d}.pth"))
 
-            with open(os.path.join(history_path, f'history-{experience_name}.json'), mode='w', encoding='utf-8') as f:
+            with open(
+                os.path.join(history_path, f"history-{experience_name}.json"),
+                mode="w",
+                encoding="utf-8",
+            ) as f:
                 json.dump(history, f, ensure_ascii=True, indent=2)
 
             if early_stopping:
@@ -158,8 +232,18 @@ class Model(object):
                 continue
 
     def save(self, path):
+        """Save network weights to *path* (PyTorch state dict).
+
+        Args:
+            path (str): Destination file path (e.g. ``model-001.pth``).
+        """
         torch.save(self.net.state_dict(), path)
 
     def load(self, path):
+        """Load network weights from *path* and set the network to eval mode.
+
+        Args:
+            path (str): Path to a saved state dict file.
+        """
         self.net.load_state_dict(torch.load(path, map_location=self.device))
         self.net.eval()

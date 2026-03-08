@@ -1,13 +1,15 @@
 """Common utilities for reproducibility and config loading."""
 
+import json
+import os
+import random
+
 import numpy as np
 import torch
 
-import random
-import json
-import os
-
-project_root = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+project_root = os.path.abspath(
+    os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+)
 
 
 def set_random_seed(random_seed):
@@ -23,5 +25,5 @@ def set_random_seed(random_seed):
 
 
 def load_config(path):
-    with open(path, mode='r', encoding='utf-8') as f:
+    with open(path, mode="r", encoding="utf-8") as f:
         return json.load(f)
