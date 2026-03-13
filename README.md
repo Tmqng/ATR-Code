@@ -162,7 +162,7 @@ nom_du_dataset/
         └── sample_1.json
 ```
 
-(ex : télécharger et décompresser le dataset suivant pour voir un example https://www.kaggle.com/datasets/minhqunnguyen/mstar-images-et-json)
+MSTAR disponible sur le lien suivant : https://www.kaggle.com/datasets/minhqunnguyen/mstar-images-et-json
 
 Les configurations d’expériences sont définies dans experiments/<model_name>/config/.
 
@@ -179,5 +179,9 @@ Selon la configuration :
 
 ⚠️ Ces dossiers ne sont pas versionnés dans Git.
 
+#### Exemple : Visualiser les courbes d'entraînement et les métriques sur le jeu de test avec AConvNet
+
+Vérifier que les modèles sont bien dans experiments/AConvNet/models/ et que les résultats sont enregistrés dans experiments/AConvNet/history/.
+Lancer les notebooks "inference" dans notebooks/
 
 
