@@ -184,4 +184,4 @@ Selon la configuration :
 Vérifier que les modèles sont bien dans experiments/AConvNet/models/ et que les résultats sont enregistrés dans experiments/AConvNet/history/.
 Lancer les notebooks "inference" dans notebooks/
 
-
+Nous partageons nos checkpoints dans ce dossier Google Drive https://drive.google.com/drive/folders/16BX03rO2dwBMhv7maQsdowq27gfGFIh7?usp=sharing.
